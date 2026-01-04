@@ -17,7 +17,7 @@ jobs:
       OLLAMA_URL: http://localhost:11434
       # Define Phoenix ports as per your Makefile requirements
       PHOENIX_PORT: 6006
-      PHOENIX_COLLECTOR_ENDPOINT: http://localhost:4317
+      PHOENIX_COLLECTOR_ENDPOINT: http://localhost:4318/v1/traces
 
     steps:
       - name: Checkout Code
@@ -44,6 +44,7 @@ jobs:
           docker run -d --name phoenix --rm \
             -p ${{ env.PHOENIX_PORT }}:6006 \
             -p 4317:4317 \
+            -p 4318:4318 \
             arizephoenix/phoenix:latest
           # Wait for the container to be healthy and ports to be bound
           sleep 10
@@ -65,4 +66,5 @@ jobs:
           ENV: test
           GITHUB_ACTIONS: "true"
           OLLAMA_URL: http://localhost:11434
+          PHOENIX_OTLP_ENDPOINT: http://localhost:4318/v1/traces
         run: pytest tests/

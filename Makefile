@@ -44,6 +44,7 @@ services-up: ## Start Phoenix (Single container, light storage)
 	@docker run -d --name phoenix --rm \
 		-p $(PHOENIX_PORT):6006 \
 		-p 4317:4317 \
+		-p 4318:4318 \
 		arizephoenix/phoenix:latest
 	@echo "✅ Phoenix is ready at http://localhost:$(PHOENIX_PORT)"
 	@echo "📡 OTLP Endpoint (for your code) is http://localhost:4317"
