@@ -8,10 +8,16 @@ langgraph
 langchain-ollama
 chromadb
 pydantic-settings
-langfuse
+
+# Monitoring & Tracing
+arize-phoenix
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+openinference-instrumentation-langchain
 
 # Testing
 pytest
+pytest-env
 pytest-bdd
 pytest-asyncio 
 nest-asyncio
