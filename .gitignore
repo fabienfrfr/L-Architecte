@@ -9,10 +9,11 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# Python (Poetry, Pipenv, UV)
+# Python (Poetry, Pipenv, UV) --> Dont use jupyter notebooks here
 poetry.lock
 Pipfile.lock
 uv.lock
+.pynb
 
 # PHP
 composer.lock
