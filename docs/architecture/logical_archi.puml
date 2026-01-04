@@ -52,7 +52,7 @@ split again
      :Draft RACI & Budgetary Estimation;
    }
    partition "Execution Specs" {
-     :Decompose into User Stories;
+     :Decompose into User Stories (DoR,DoR);
      :Define Data Schemas & API Contracts;
    }
 end split

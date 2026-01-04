@@ -1,49 +1,62 @@
 import pytest
 import httpx
 import os
+import yaml
 
 
-# Fixture to centralize configuration (SRP/DRY)
+# Function to load specifications
+def get_specs():
+    with open("specs/functional/req_ollama.yaml", "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
 @pytest.fixture
-def ollama_config():
-    # NEED : ollama pull gemma3:270m
+def ollama_env():
     return {
         "url": os.getenv("OLLAMA_URL", "http://localhost:11434"),
-        "model": "gemma3:270m",
+        "specs": get_specs(),
     }
 
 
+# Single responsibility test functions
 @pytest.mark.asyncio
-async def test_ollama_server_connection(ollama_config):
+async def test_requirement_ollama_server_reachable(ollama_env):
     """
-    Responsibility: Verify the physical availability of the Ollama API.
+    REQ-OLLAMA / INFRA-01: Verify physical availability of the API.
     """
+    target = ollama_env["specs"]["must_have"]["server"]
+    url = f"{ollama_env['url']}{target['endpoint']}"
+
     async with httpx.AsyncClient(timeout=2.0) as client:
         try:
-            response = await client.get(ollama_config["url"])
-            assert response.status_code == 200
+            response = await client.get(url)
+            assert (
+                response.status_code == target["expected_status"]
+            ), f"Requirement {target['id']} failed: Server returned {response.status_code}"
         except (httpx.ConnectError, httpx.ConnectTimeout):
-            pytest.fail(f"Service unreachable at {ollama_config['url']}")
+            pytest.fail(f"Infrastructure error: Service unreachable at {url}")
 
 
 @pytest.mark.asyncio
-async def test_required_model_is_pulled(ollama_config):
+async def test_requirement_ollama_model_present(ollama_env):
     """
-    Responsibility: Verify that the specific test model exists in the local registry.
+    REQ-OLLAMA / MODEL-01: Verify that the required model is pulled.
     """
-    target_model = ollama_config["model"]
+    target = ollama_env["specs"]["must_have"]["model"]
+    url = f"{ollama_env['url']}{target['endpoint']}"
+    model_name = target["name"]
+
     async with httpx.AsyncClient(timeout=5.0) as client:
-        # We only catch communication errors, not assertion errors (SOLID)
         try:
-            response = await client.get(f"{ollama_config['url']}/api/tags")
+            response = await client.get(url)
             assert response.status_code == 200
+
+            models_data = response.json().get("models", [])
+            local_names = [m["name"] for m in models_data]
+
+            assert any(
+                model_name in name for name in local_names
+            ), f"Requirement {target['id']} failed: Model {model_name} not found. Please run 'ollama pull {model_name}'"
+
         except (httpx.ConnectError, httpx.TimeoutException) as e:
-            pytest.fail(f"Infrastructure error: {str(e)}")
-
-        models_data = response.json().get("models", [])
-        local_model_names = [m["name"] for m in models_data]
-
-        # This will raise a clean AssertionError if the model is missing
-        assert any(
-            target_model in name for name in local_model_names
-        ), f"Model {target_model} not found. Run 'ollama pull {target_model}'"
+            pytest.fail(f"Infrastructure error during model check: {str(e)}")

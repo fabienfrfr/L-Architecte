@@ -1,0 +1,15 @@
+requirement_id: REQ-OLLAMA
+component: Ollama Infrastructure
+priority_framework: MoSCoW
+
+must_have:
+  server:
+    id: "INFRA-01"
+    description: "The Ollama API server must be reachable."
+    endpoint: "/"
+    expected_status: 200
+  model:
+    id: "MODEL-01"
+    description: "The gemma3:270m model must be pulled and ready."
+    name: "gemma3:270m"
+    endpoint: "/api/tags"

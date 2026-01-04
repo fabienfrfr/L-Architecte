@@ -1,0 +1,13 @@
+requirement_id: REQ-OBSERVABILITY
+component: Phoenix Observability
+priority_framework: MoSCoW
+
+must_have:
+  environment:
+    id: "ENV-01"
+    description: "Phoenix connectivity must be defined in environment variables."
+    keys: ["PHOENIX_PORT", "PHOENIX_COLLECTOR_ENDPOINT"]
+  connection:
+    id: "CONN-01"
+    description: "The Phoenix OTLP collector must be reachable on the network."
+    target_url: "http://localhost:6006"

@@ -42,14 +42,6 @@ services:
       - CHROMADB_URL=http://chromadb:8000
     restart: unless-stopped
 
-  frontend:
-    build: ../../apps/frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - architect
-    restart: unless-stopped
-
 volumes:
   ollama_data:
   chroma_data:

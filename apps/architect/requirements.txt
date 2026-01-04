@@ -8,12 +8,14 @@ langgraph
 langchain-ollama
 chromadb
 pydantic-settings
+langfuse
 
 # Testing
 pytest
 pytest-bdd
 pytest-asyncio 
 nest-asyncio
+pytest-dotenv
 
 # Data Analysis
 numpy

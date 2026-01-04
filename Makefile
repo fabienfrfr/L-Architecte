@@ -4,9 +4,10 @@ PIP = pip
 VENV = .venv
 ACTIVATE = . $(VENV)/bin/activate
 
-# Deployment configuration
+# Configuration
 DOMAIN = thearchitect.dev
 USER = ubuntu
+PHOENIX_PORT = 6006
 
 # Default target
 .DEFAULT_GOAL := help
@@ -24,12 +25,11 @@ help: ## Display this help message
 		echo "NICEGUI_NATIVE=False" >> .env; \
 		echo "DOMAIN=$(DOMAIN)" >> .env; \
 		echo "USER=$(USER)" >> .env; \
-		echo "POSTGRES_PASSWORD=$$(openssl rand -hex 32)" >> .env; \
-		echo "LANGFUSE_SECRET_KEY=$$(openssl rand -hex 32)" >> .env; \
-		echo "NEXTAUTH_SECRET=$$(openssl rand -hex 32)" >> .env; \
-		echo "✅ .env file created with secure unique keys."; \
+		echo "PHOENIX_PORT=$(PHOENIX_PORT)" >> .env; \
+		echo "PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317" >> .env; \
+		echo "✅ .env file created."; \
 	else \
-		echo "⚠️  .env file already exists. Skipping to protect existing secrets."; \
+		echo "⚠️  .env file already exists."; \
 	fi
 
 install: .env ## Create virtualenv and install dependencies
@@ -38,38 +38,53 @@ install: .env ## Create virtualenv and install dependencies
 	$(ACTIVATE) && $(PIP) install -r requirements.txt
 	@echo "Installation complete."
 
+##@ Services (Local Observability)
+services-up: ## Start Phoenix (Single container, light storage)
+	@echo "🚀 Starting Phoenix..."
+	@docker run -d --name phoenix --rm \
+		-p $(PHOENIX_PORT):6006 \
+		-p 4317:4317 \
+		arizephoenix/phoenix:latest
+	@echo "✅ Phoenix is ready at http://localhost:$(PHOENIX_PORT)"
+	@echo "📡 OTLP Endpoint (for your code) is http://localhost:4317"
+	@docker ps
+
+services-down: ## Stop ALL running containers and free RAM immediately
+	@echo "🛑 Stopping all containers..."
+	@docker stop $$(docker ps -q) 2>/dev/null || true
+	@echo "🧹 Removing stopped containers..."
+	@docker container prune -f
+	@echo "✅ System is clean."
+
+
+##@ Storage Management
+space: ## Show docker disk usage
+	docker system df
+
+nuke: ## WARNING: Completely wipe ALL docker data (images, volumes, cache)
+	@echo "⚠️  Wiping everything..."
+	docker system prune -a --volumes -f
+	@echo "✅ Disk space recovered."
+
 ##@ Development
 run: ## Launch application in LOCAL mode
 	$(ACTIVATE) && export PYTHONPATH=. && ENV=local python3 -m architect.main
 
-run-test: ## Launch application in TEST mode
-	$(ACTIVATE) && export PYTHONPATH=. && python3 -m architect.main
-
-test: ## Run pytest-bdd tests
+test: ## Run pytest
 	$(ACTIVATE) && export PYTHONPATH=. && pytest tests/
 
 docker-run: ## Build and start local containers
 	docker compose -f infra/local/docker-compose.yml up --build
 
-vps-setup: ## Update VPS and install Docker + Compose
-	@echo "🛠️  Updating system and installing Docker on $(DOMAIN)..."
-	ssh $(USER)@$(DOMAIN) "sudo apt update && sudo apt install -y docker.io docker-compose-v2"
-	@echo "👤 Adding user to docker group..."
-	ssh $(USER)@$(DOMAIN) "sudo usermod -aG docker $(USER)"
-	@echo "✅ Setup complete!"
-	@echo "⚠️  IMPORTANT: You must manually log out and log back in to the VPS for permissions to take effect."
-
 ##@ Deployment
-deploy: ## Deploy the project to OVH VPS via SSH/Rsync
+deploy: ## Deploy the project to OVH VPS
 	@echo "📤 Uploading AgenticArchitect to $(DOMAIN)..."
-	ssh $(USER)@$(DOMAIN) "mkdir -p ~/AgenticArchitect"
-	rsync -avz --exclude='.git' --exclude='.venv' --exclude='__pycache__' ./ $(USER)@$(DOMAIN):~/AgenticArchitect
-	@echo "🚀 Launching Production Stack on VPS..."
+	rsync -avz --exclude='.git' --exclude='.venv' ./ $(USER)@$(DOMAIN):~/AgenticArchitect
 	ssh $(USER)@$(DOMAIN) "cd ~/AgenticArchitect && docker compose -f infra/vps/docker-compose.prod.yml up -d --build"
 
-##@ Cleanup
 clean: ## Remove virtualenv and python cache files
 	rm -rf $(VENV)
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+	docker system prune -f
 
-.PHONY: help install run run-test test docker-run vps-setup deploy clean
+.PHONY: help install run test docker-run deploy clean services-up services-down
