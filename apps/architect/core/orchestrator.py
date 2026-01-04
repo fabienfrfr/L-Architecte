@@ -4,7 +4,6 @@ from typing import TypedDict, List, Optional, Dict, Any
 from langgraph.graph import StateGraph, START, END
 
 # --- Standardized Imports ---
-# Ensure these paths match your folder structure exactly
 from apps.architect.agents.pm import PMAgent
 from apps.architect.agents.analyst import AnalystAgent
 from apps.architect.agents.architect import ArchitectAgent
@@ -28,20 +27,21 @@ class AgentState(TypedDict):
 
 
 def pm_node(state: AgentState) -> Dict[str, Any]:
-    """Executes PM analysis and catches potential parsing errors (BASE Logic)."""
+    """Executes PM analysis and catches potential parsing errors."""
     agent = PMAgent()
     current_retry = state.get("retry_count", 0)
 
     try:
         response = agent.check_requirements(state["requirements"])
-        # If the LLM returns invalid JSON, json.loads will raise an error here
-        data = json.loads(response.content)
+        # Support for different response formats (string or content object)
+        content = response.content if hasattr(response, "content") else response
+        data = json.loads(content)
 
         return {
             "charter_data": data,
             "is_ready": data.get("is_smart", False),
             "latest_error": None,
-            "retry_count": current_retry,  # Maintain count
+            "retry_count": current_retry,
         }
     except Exception as e:
         logging.error(f"Inference error on try {current_retry}: {str(e)}")
@@ -49,9 +49,8 @@ def pm_node(state: AgentState) -> Dict[str, Any]:
 
 
 def analyst_node(state: AgentState) -> Dict[str, Any]:
-    """Analyst Agent: Performs data discovery and EDA requirements."""
+    """Analyst Agent: Performs data discovery."""
     agent = AnalystAgent()
-    # Using model_dump() for Pydantic V2 compatibility
     report = agent.analyze(state["requirements"])
     return {
         "analysis_report": (
@@ -61,9 +60,8 @@ def analyst_node(state: AgentState) -> Dict[str, Any]:
 
 
 def architect_node(state: AgentState) -> Dict[str, Any]:
-    """Architect Agent: Generates C4 diagrams and Architecture Decision Records (ADR)."""
+    """Architect Agent: Generates C4 diagrams and ADRs."""
     agent = ArchitectAgent()
-    # Generate artifacts based on input requirements
     diagram = agent.generate_c4_diagram({"req": state["requirements"]})
     adr = agent.generate_adr({"context": "Local Deployment"})
 
@@ -76,13 +74,13 @@ def architect_node(state: AgentState) -> Dict[str, Any]:
 
 
 def engineer_node(state: AgentState) -> Dict[str, Any]:
-    """Engineer Agent: Generates SOLID-compliant code from architecture specs."""
+    """Engineer Agent: Generates SOLID-compliant code."""
     agent = EngineerAgent()
     specs = state.get("architecture_specs")
 
     if not specs:
         raise ValueError(
-            "Critical Error: Missing architecture specs in state for Engineer Agent."
+            "Critical Error: Missing architecture specs for Engineer Agent."
         )
 
     code = agent.generate_solid_code(specs["adr"], specs["diagram"])
@@ -91,67 +89,62 @@ def engineer_node(state: AgentState) -> Dict[str, Any]:
     }
 
 
-def review_node(state: AgentState):
-    """
-    Critiques the proposed solution based on the 'Less is More' principle.
-    """
-    # This node sends the plan to a critic agent (or the same LLM with a specific prompt)
-    # to identify unnecessary complexity or redundant dependencies.
-    prompt = "Review the following proposal. Identify 3 things that can be removed to make it simpler."
-    # ... logic to call the LLM ...
+def review_node(state: AgentState) -> Dict[str, Any]:
+    """Critiques the proposed solution based on 'Less is More' principle."""
+    # Simplified placeholder for the review logic
     return state
 
-# --- Routing Logic (The Deciders) ---
+
+# --- Routing Logic ---
 
 
 def retry_router(state: AgentState) -> str:
-    """
-    Explicit Router for Error Handling and Business Logic.
-    Implements a loop for self-healing if the LLM fails.
-    """
-    # 1. Error Handling: Retry if an error occurred and we haven't hit the limit (3)
+    """Explicit Router for Error Handling and Business Logic."""
     if state.get("latest_error") and state.get("retry_count", 0) < 3:
         return "retry"
-
-    # 2. Business Logic: If PM marked it ready, proceed to Analyst
     if state.get("is_ready"):
         return "continue"
-
-    # 3. Terminal State: Either too many errors or the project description is not SMART enough
     return "stop"
 
 
-# --- Graph Construction ---
+# --- Graph Construction Function ---
 
-# Initialize the state machine
-workflow = StateGraph(AgentState)
 
-# Add all agents as nodes
-workflow.add_node("pm", pm_node)
-workflow.add_node("analyst", analyst_node)
-workflow.add_node("architect", architect_node)
-workflow.add_node("engineer", engineer_node)
-workflow.add_node("reviewer", review_node)
-# Set the entry point to the PM Agent
-workflow.add_edge(START, "pm")
+def create_architect_graph() -> StateGraph:
+    """
+    Constructs and compiles the AgenticArchitect workflow.
+    This encapsulation follows the 'Analyst -> Architect -> Engineer' methodology.
+    """
+    builder = StateGraph(AgentState)
 
-#
-# Define the conditional logic after PM analysis
-workflow.add_conditional_edges(
-    "pm",
-    retry_router,
-    {
-        "retry": "pm",  # Loop back for self-healing
-        "continue": "analyst",  # Move to the next swimlane phase
-        "stop": END,  # Stop the process
-    },
-)
+    # Add all agents as nodes
+    builder.add_node("pm", pm_node)
+    builder.add_node("analyst", analyst_node)
+    builder.add_node("architect", architect_node)
+    builder.add_node("engineer", engineer_node)
+    builder.add_node("reviewer", review_node)
 
-# Linear flow for the remaining agents (Post-validation)
-workflow.add_edge("analyst", "architect")
-workflow.add_edge("architect", "engineer")
-workflow.add_edge("engineer", "reviewer")
-workflow.add_edge("reviewer", END)
+    # Define the flow
+    builder.add_edge(START, "pm")
 
-# Compile the graph into an executable app
-app_workflow = workflow.compile()
+    builder.add_conditional_edges(
+        "pm",
+        retry_router,
+        {
+            "retry": "pm",
+            "continue": "analyst",
+            "stop": END,
+        },
+    )
+
+    builder.add_edge("analyst", "architect")
+    builder.add_edge("architect", "engineer")
+    builder.add_edge("engineer", "reviewer")
+    builder.add_edge("reviewer", END)
+
+    return builder.compile()
+
+
+# --- Executable App Export ---
+# This is the object you will import in your main.py and pass to layout.update_graph()
+app_workflow = create_architect_graph()

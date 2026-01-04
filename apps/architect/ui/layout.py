@@ -29,7 +29,10 @@ class ArchitectLayout:
 
     def setup_ui(self):
         with self.container:
-            with ui.card().classes("w-2/3 q-pa-md mt-10 shadow-lg"):
+            # 1. Main Input Section (Requirements first)
+            with ui.card().classes(
+                "w-2/3 q-pa-md mt-10 shadow-lg border-t-4 border-black"
+            ):
                 ui.label("Agentic Requirements Analysis").classes("text-h4 mb-4")
 
                 self.req_input = ui.textarea(
@@ -46,6 +49,33 @@ class ArchitectLayout:
                 self.spinner.set_visibility(False)
 
                 self.results_area = ui.column().classes("w-full mt-6")
+
+            # 2. System Architecture Section (Graph second)
+            with ui.card().classes("w-2/3 q-pa-md mt-5 shadow-2xl"):
+                ui.label("System Architecture").classes("text-h6 mb-2")
+                self.graph_card = ui.column().classes("w-full items-center")
+
+    def update_graph(self, compiled_graph):
+        """
+        Updates the UI with the actual Mermaid diagram from LangGraph
+        """
+        self.graph_card.clear()
+        with self.graph_card:
+            try:
+                # Fix: draw_mermaid() for text output doesn't need draw_method
+                # It returns the Mermaid string directly
+                mermaid_code = compiled_graph.get_graph().draw_mermaid()
+                mermaid_code = mermaid_code.replace("graph TD", "graph LR").replace(
+                    "graph TB", "graph LR"
+                )
+                ui.mermaid(mermaid_code).classes("w-full")
+            except Exception as e:
+                # Fallback if Mermaid fails: display as ASCII
+                try:
+                    ascii_graph = compiled_graph.get_graph().draw_ascii()
+                    ui.pre(ascii_graph).classes("text-xs")
+                except:
+                    ui.label(f"Error loading graph: {str(e)}").classes("text-red")
 
     def toggle_loader(self, visible: bool):
         self.spinner.set_visibility(visible)

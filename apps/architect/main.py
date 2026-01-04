@@ -7,6 +7,9 @@ from apps.architect.ui.layout import ArchitectLayout
 from apps.architect.controller import ArchitectController
 from apps.architect.core.observability import setup_observability
 
+# Import the compiled graph for visualization
+from apps.architect.core.orchestrator import app_workflow
+
 # Configure Logger for production-level feedback
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
@@ -29,6 +32,9 @@ class TheArchitectApp:
 
         # UI Layout with callback to the analysis handler
         self.view = ArchitectLayout(on_start=self.handle_analysis)
+
+        # Display the graph structure on the home page
+        self.view.update_graph(app_workflow)
 
     async def handle_analysis(self, requirements: str) -> None:
         """
