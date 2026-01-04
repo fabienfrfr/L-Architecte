@@ -12,7 +12,8 @@ class PMAgent:
                     "You are a strict Project Manager. Analyze the client requirements using SMART criteria. "
                     "If ANY detail is missing (data sources, deadliness, specific tech stack, scale), "
                     "set 'is_smart' to false. "
-                    "Return ONLY JSON with keys: 'is_smart' (bool), 'gaps' (list), 'hypotheses' (list).",
+                    "Return ONLY JSON with keys: 'is_smart' (bool), 'gaps' (list), 'hypotheses' (list)."
+                    "HYPOTHESES: Generate realistic technical assumptions to fill the gaps. ",
                 ),
                 ("user", "{requirements}"),
             ]
