@@ -7,8 +7,10 @@ from apps.architect.ui.layout import ArchitectLayout
 from apps.architect.controller import ArchitectController
 from apps.architect.core.observability import setup_observability
 
-# Configure Logger
-logging.basicConfig(level=logging.INFO)
+# Configure Logger for production-level feedback
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -19,21 +21,28 @@ class TheArchitectApp:
     """
 
     def __init__(self) -> None:
-        # Initialize Observability (Phoenix/OTLP) before the controller starts
+        # Initialize Observability (Phoenix/OTLP) to trace agentic traces
         setup_observability()
 
+        # Core logic controller (LangGraph orchestration)
         self.controller = ArchitectController()
+
+        # UI Layout with callback to the analysis handler
         self.view = ArchitectLayout(on_start=self.handle_analysis)
 
     async def handle_analysis(self, requirements: str) -> None:
-        """Handles the full pipeline execution with UI feedback."""
+        """
+        Handles the full pipeline execution with UI feedback.
+        Triggers the Analyst -> Architect -> Engineer swimlane.
+        """
         self.view.toggle_loader(True)
         try:
-            # The Phoenix instrumentation will automatically capture this call
+            # The controller runs the LangGraph workflow
+            # Observability captures the nested agent calls automatically
             result = await self.controller.run_full_pipeline(requirements)
             self.view.display_results(result)
         except Exception as e:
-            logger.error(f"Pipeline error: {e}")
+            logger.error(f"Pipeline execution failed: {e}")
             ui.notify(f"Error: {str(e)}", type="negative")
         finally:
             self.view.toggle_loader(False)
@@ -42,23 +51,25 @@ class TheArchitectApp:
 def start_app() -> None:
     """
     Bootstrap function to handle platform-specific configurations
-    and launch the NiceGUI interface.
+    and launch the NiceGUI interface on port 8080.
     """
+    # Necessary for OpenTelemetry and Ollama calls in multi-agent environments
     if sys.platform != "win32":
         try:
             multiprocessing.set_start_method("spawn", force=True)
         except RuntimeError:
             pass
 
-    # Instantiate the App (which triggers observability)
+    # Instantiate the application
     TheArchitectApp()
 
-    # Run NiceGUI
+    # Start NiceGUI server
     ui.run(
         title="TheArchitect",
         port=8080,
         native=False,
-        reload=False,  # Recommended when using complex instrumentation/multiprocessing
+        reload=False,
+        dark=False,
     )
 
 
