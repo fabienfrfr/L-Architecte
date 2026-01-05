@@ -20,6 +20,6 @@ jobs:
       - name: Run Tests inside Container
         run: |
           docker compose -f infra/services/docker-compose.yml exec -T \
-          -e OLLAMA_URL=http://ollama:11434 \
-          -e PHOENIX_HOST=phoenix \
+          -e OLLAMA_URL=http://ollama_service:11434 \
+          -e PHOENIX_HOST=phoenix_service \
           architect pytest tests/
