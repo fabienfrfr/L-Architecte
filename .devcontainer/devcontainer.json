@@ -3,7 +3,7 @@
    * Prerequisites:
    * 1. Docker and Docker Compose must be installed on your system.
    * 2. VSCode with the "Remote - Containers" extension installed.
-   * 3. The project must be built at least once with `docker compose -f infra/services/docker-compose.yml build`.
+   * 3. (re)Build with Ctrl+Shift+P > Remote-Containers: Rebuild Container
    * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
     "name": "AgenticArchitect Dev Container",
@@ -40,6 +40,6 @@
         6006,
         4317
     ],
-    "postCreateCommand": "pip install -e .",
+    "postCreateCommand": "git config --global --add safe.directory /app && pip install -r apps/architect/requirements.txt && pip install -e .",
     "remoteUser": "root"
 }
