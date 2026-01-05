@@ -27,6 +27,8 @@ help: ## Display this help message
 		echo "USER=$(USER)" >> .env; \
 		echo "PHOENIX_PORT=$(PHOENIX_PORT)" >> .env; \
 		echo "PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317" >> .env; \
+		echo "GIT_USER_NAME=" >> .env; \
+		echo "GIT_USER_EMAIL=" >> .env; \
 		echo "✅ .env file created."; \
 	else \
 		echo "⚠️  .env file already exists."; \
