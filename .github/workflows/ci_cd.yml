@@ -22,4 +22,5 @@ jobs:
           docker compose -f infra/services/docker-compose.yml exec -T \
           -e OLLAMA_URL=http://ollama_service:11434 \
           -e PHOENIX_HOST=phoenix_service \
+          -e PHOENIX_COLLECTOR_ENDPOINT=http://phoenix_service:4317 \
           architect pytest tests/
