@@ -76,6 +76,10 @@ services:
         condition: service_healthy
       phoenix:
         condition: service_started
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
     restart: always
 
 volumes:

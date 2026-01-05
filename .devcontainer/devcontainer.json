@@ -7,31 +7,39 @@
    * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
     "name": "AgenticArchitect Dev Container",
-    "dockerComposeFile": "infra/services/docker-compose.yml", // Requires Docker Compose setup
+    "dockerComposeFile": "../infra/services/docker-compose.yml",
     "service": "architect",
     "workspaceFolder": "/app",
-    "settings": {
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.provider": "black",
-        "python.testing.pytestEnabled": true,
-        "python.analysis.typeCheckingMode": "basic"
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
     },
-    "extensions": [
-        "ms-python.python", // Core Python support
-        "ms-python.pylint", // Linting
-        "ms-python.black-formatter" // Formatting
-    ],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.testing.pytestArgs": [
+                    "tests",
+                    "specs"
+                ],
+                "python.analysis.typeCheckingMode": "basic",
+                "editor.formatOnSave": true,
+                "python.formatting.provider": "black"
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "ms-python.pylint",
+                "ms-python.black-formatter",
+                "eamodio.gitlens"
+            ]
+        }
+    },
     "forwardPorts": [
         8080,
         6006,
         4317
-    ], // Architect, Phoenix, OTLP ports
+    ],
     "postCreateCommand": "pip install -e .",
-    // Required for debugging (development only)
-    "runArgs": [
-        "--cap-add=SYS_PTRACE",
-        "--security-opt",
-        "seccomp=unconfined"
-    ]
+    "remoteUser": "root"
 }
