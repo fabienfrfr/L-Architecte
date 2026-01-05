@@ -80,6 +80,8 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
+    volumes:
+      - ../../../:/app # Mount the entire repo for development
     restart: always
 
 volumes:
