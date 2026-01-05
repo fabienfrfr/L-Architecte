@@ -30,7 +30,7 @@ services:
     image: arizephoenix/phoenix:latest
     container_name: phoenix_service
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/6006"]
+      test: ["CMD-SHELL", "cat < /dev/null > /dev/tcp/127.0.0.1/6006"]
       interval: 5s
       timeout: 5s
       retries: 5
