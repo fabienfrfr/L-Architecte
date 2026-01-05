@@ -22,6 +22,7 @@
                     "tests",
                     "specs"
                 ],
+                "python.testing.pytestPath": "pytest",
                 "python.analysis.typeCheckingMode": "basic",
                 "editor.formatOnSave": true,
                 "python.formatting.provider": "black"
