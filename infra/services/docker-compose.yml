@@ -1,9 +1,10 @@
 version: "3.8"
 
 services:
-  # EDGE PROXY: Traefik handles SSL (HTTPS) automatically
+  # EDGE PROXY: Traefik handles SSL (HTTPS) automatically via Let's Encrypt
   traefik:
     image: traefik:v2.10
+    profiles: ["deploy"]
     container_name: traefik
     command:
       - "--api.insecure=false"
@@ -24,8 +25,32 @@ services:
       - "./letsencrypt:/letsencrypt"
     restart: always
 
-  # ARCHITECT SERVICE: The main agentic engine
-  # Based on your structure, we build from the root or the architect folder
+  # PHOENIX: Local Observability & Tracing for LLM Agents
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: phoenix_service
+    ports:
+      - "6006:6006" # Web UI Dashboard
+      - "4317:4317" # OTLP gRPC collector
+      - "4318:4318" # OTLP HTTP collector
+    restart: always
+
+  # OLLAMA: Local inference engine (pre-configured with gemma2:270m)
+  ollama:
+    build:
+      context: .
+      dockerfile: Ollama.Dockerfile
+    container_name: ollama_service
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  # ARCHITECT SERVICE: The main agentic engine developed by Fabien Furfaro
   architect:
     build:
       context: ../../
@@ -34,25 +59,23 @@ services:
     environment:
       - ENV=test
       - OLLAMA_URL=http://ollama:11434
+      # Points to the Phoenix Docker service defined below
+      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:4317
+      - PHOENIX_CLIENT_HEADERS=api_key=unused
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.architect.rule=Host(`thearchitect.dev`)"
       - "traefik.http.routers.architect.entrypoints=websecure"
       - "traefik.http.routers.architect.tls.certresolver=myresolver"
-      # NiceGUI uses port 8080 by default
+      # NiceGUI default port mapping
       - "traefik.http.services.architect.loadbalancer.server.port=8080"
+    ports:
+      - "8080:8080"
     depends_on:
-      - ollama
-    restart: always
-
-  # OLLAMA: Local inference engine (CPU Mode for VPS)
-  ollama:
-    build:
-      context: .
-      dockerfile: Ollama.Dockerfile
-    container_name: ollama_service
-    volumes:
-      - ollama_data:/root/.ollama
+      ollama:
+        condition: service_healthy
+      phoenix:
+        condition: service_started
     restart: always
 
 volumes:

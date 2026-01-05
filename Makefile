@@ -38,26 +38,6 @@ install: .env ## Create virtualenv and install dependencies
 	$(ACTIVATE) && $(PIP) install -r requirements.txt
 	@echo "Installation complete."
 
-##@ Services (Local Observability)
-services-up: ## Start Phoenix (Single container, light storage)
-	@echo "🚀 Starting Phoenix..."
-	@docker run -d --name phoenix --rm \
-		-p $(PHOENIX_PORT):6006 \
-		-p 4317:4317 \
-		-p 4318:4318 \
-		arizephoenix/phoenix:latest
-	@echo "✅ Phoenix is ready at http://localhost:$(PHOENIX_PORT)"
-	@echo "📡 OTLP Endpoint (for your code) is http://localhost:4317"
-	@docker ps
-
-services-down: ## Stop ALL running containers and free RAM immediately
-	@echo "🛑 Stopping all containers..."
-	@docker stop $$(docker ps -q) 2>/dev/null || true
-	@echo "🧹 Removing stopped containers..."
-	@docker container prune -f
-	@echo "✅ System is clean."
-
-
 ##@ Storage Management
 space: ## Show docker disk usage
 	docker system df
@@ -65,7 +45,10 @@ space: ## Show docker disk usage
 nuke: ## WARNING: Completely wipe ALL docker data (images, volumes, cache)
 	@echo "⚠️  Wiping everything..."
 	docker system prune -a --volumes -f
-	@echo "✅ Disk space recovered."
+
+nuke-vps: ## WARNING: Completely wipe ALL docker data (images, volumes, cache)
+	@echo "⚠️  Wiping everything..."
+	ssh $(USER)@$(DOMAIN) "docker stop \$$(docker ps -q) 2>/dev/null || true && docker container prune -f"
 
 ##@ Development
 run: ## Launch application in LOCAL mode
@@ -75,17 +58,22 @@ test: ## Run pytest
 	$(ACTIVATE) && export PYTHONPATH=. && pytest tests/
 
 docker-run: ## Build and start local containers
-	docker compose -f infra/local/docker-compose.yml up --build
+	docker compose -f infra/services/docker-compose.yml up --build
+
+services-down: ## Stop ALL running containers and free RAM immediately
+	@docker stop $$(docker ps -q) 2>/dev/null || true
+	@docker container prune -f
+	@docker ps
 
 ##@ Deployment
 deploy: ## Deploy the project to OVH VPS
 	@echo "📤 Uploading AgenticArchitect to $(DOMAIN)..."
 	rsync -avz --exclude='.git' --exclude='.venv' ./ $(USER)@$(DOMAIN):~/AgenticArchitect
-	ssh $(USER)@$(DOMAIN) "cd ~/AgenticArchitect && docker compose -f infra/vps/docker-compose.prod.yml up -d --build"
+	ssh $(USER)@$(DOMAIN) "cd ~/AgenticArchitect && docker compose -f infra/services/docker-compose.yml --profile deploy up -d --build"
 
 clean: ## Remove virtualenv and python cache files
 	rm -rf $(VENV)
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	docker system prune -f
 
-.PHONY: help install run test docker-run deploy clean services-up services-down
+.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space

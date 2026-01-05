@@ -9,6 +9,15 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
+# Docker & Infrastructure
+letsencrypt/
+ollama_data/
+*.db
+*.log
+.env
+.venv/
+
+
 # Python (Poetry, Pipenv, UV) --> Dont use jupyter notebooks here
 poetry.lock
 Pipfile.lock

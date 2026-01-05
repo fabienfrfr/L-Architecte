@@ -1,4 +1,4 @@
-name: CI-CD-Pipeline
+name: CI-Pipeline
 
 on:
   push:
@@ -10,61 +10,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    env:
-      # Set environment variables for the test runner
-      PYTHONPATH: ${{ github.workspace }}
-      ENV: test
-      OLLAMA_URL: http://localhost:11434
-      # Define Phoenix ports as per your Makefile requirements
-      PHOENIX_PORT: 6006
-      PHOENIX_COLLECTOR_ENDPOINT: http://localhost:4318/v1/traces
-
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+      - name: Build and Start Services
+        run: docker compose -f infra/services/docker-compose.yml up -d --build --wait
 
-      - name: Install Ollama
+      - name: Run Tests inside Container
         run: |
-          curl -fsSL https://ollama.com/install.sh | sh
-          ollama serve &
-          # Allow the background service to initialize
-          sleep 5
-
-      - name: Pull Test Model
-        run: ollama pull gemma3:270m
-
-      - name: Start Observability Services
-        # Uses the Docker command defined in your Makefile to spin up Phoenix
-        run: |
-          docker run -d --name phoenix --rm \
-            -p ${{ env.PHOENIX_PORT }}:6006 \
-            -p 4317:4317 \
-            -p 4318:4318 \
-            arizephoenix/phoenix:latest
-          # Wait for the container to be healthy and ports to be bound
-          sleep 10
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          # Install shared library dependencies for GTK/PyGObject
-          sudo apt-get install -y libgirepository-2.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r apps/architect/requirements.txt
-
-      - name: Run Pytest Suite
-        env:
-          # Override environment specifically for the test execution phase
-          ENV: test
-          GITHUB_ACTIONS: "true"
-          OLLAMA_URL: http://localhost:11434
-          PHOENIX_OTLP_ENDPOINT: http://localhost:4318/v1/traces
-        run: pytest tests/
+          docker compose -f infra/services/docker-compose.yml exec -T architect \
+          pytest tests/
