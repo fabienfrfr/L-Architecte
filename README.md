@@ -17,7 +17,7 @@ The system follows a strict automated workflow based on an agentic bus:
 3. **Architect Agent**: Designs C4 Diagrams and Decision Records (ADR).
 4. **Engineer Agent**: Produces TDD-backed, SOLID-compliant code.
 
-While general-purpose agents like Skywork, Manus, or Genspark excel at rapid task execution, **AgenticArchitect** focuses on the craft of software engineering. It is not just a tool for generating results; it is a framework for building sustainable architecture, enforcing rigorous methodologies, and maintaining total sovereignty over your local infrastructure.
+While general-purpose agents like Skywork, Manus, or Genspark excel at rapid task execution, **AgenticArchitect** focuses on the craft of software engineering. It is not just a tool for generating results; it is a framework for building sustainable architecture, enforcing rigorous methodologies, and maintaining total sovereignty over your local infrastructure. This approach, designed to automate software design, shares a philosophical kinship with the [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD), but focuses on a native, local, autonomous, and simplified implementation for immediate execution.
 
 ## 🔍 Related Research & Agentic Tools
 
