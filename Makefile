@@ -58,7 +58,9 @@ test: ## Run pytest
 	$(ACTIVATE) && export PYTHONPATH=. && pytest tests/
 
 docker-run: ## Build and start local containers
-	docker compose -f infra/services/docker-compose.yml up --build
+	docker compose -f infra/services/docker-compose.yml up -d --build
+	@docker ps
+
 
 services-down: ## Stop ALL running containers and free RAM immediately
 	@docker stop $$(docker ps -q) 2>/dev/null || true
