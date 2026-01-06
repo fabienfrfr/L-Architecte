@@ -12,6 +12,11 @@ PHOENIX_PORT = 6006
 # Default target
 .DEFAULT_GOAL := help
 
+# url port
+OLLAMA_URL=http://ollama:11434
+PHOENIX_URL=http://phoenix:6006
+PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:4317
+
 ##@ Help
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -21,12 +26,13 @@ help: ## Display this help message
 	@if [ ! -f .env ]; then \
 		echo "PYTHONPATH=." > .env; \
 		echo "ENV=test" >> .env; \
-		echo "OLLAMA_URL=http://localhost:11434" >> .env; \
+		echo "OLLAMA_URL=$(OLLAMA_URL)" >> .env; \
+		echo "PHOENIX_URL=$(PHOENIX_URL)" >> .env; \
 		echo "NICEGUI_NATIVE=False" >> .env; \
 		echo "DOMAIN=$(DOMAIN)" >> .env; \
 		echo "USER=$(USER)" >> .env; \
 		echo "PHOENIX_PORT=$(PHOENIX_PORT)" >> .env; \
-		echo "PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317" >> .env; \
+		echo "PHOENIX_COLLECTOR_ENDPOINT=$(PHOENIX_COLLECTOR_ENDPOINT)" >> .env; \
 		echo "GIT_USER_NAME=" >> .env; \
 		echo "GIT_USER_EMAIL=" >> .env; \
 		echo "✅ .env file created."; \

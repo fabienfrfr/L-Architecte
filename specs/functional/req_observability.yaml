@@ -9,5 +9,6 @@ must_have:
     keys: ["PHOENIX_PORT", "PHOENIX_COLLECTOR_ENDPOINT"]
   connection:
     id: "CONN-01"
-    description: "The Phoenix OTLP collector must be reachable on the network."
-    target_url: "http://localhost:6006"
+    description: "The Phoenix UI and OTLP collector must be reachable."
+    target_url: "http://phoenix:6006"
+    otlp_host: "phoenix" #

@@ -57,11 +57,13 @@ async def test_requirement_otlp_port_open(obs_env):
     """
     Check if the OTLP Collector port (4317) is accepting connections.
     """
-    # This is crucial for LangGraph traces to actually be sent
+    # Simple: Get the host from your YAML specs
+    host = obs_env["specs"]["must_have"]["connection"]["otlp_host"]
+    port = 4317
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(("127.0.0.1", 4317))
+    sock.settimeout(2.0)
+    result = sock.connect_ex((host, port))
     sock.close()
 
-    assert (
-        result == 0
-    ), "OTLP Collector port 4317 is closed. Traces will not be captured."
+    assert result == 0, f"OTLP Collector port {port} is closed on {host}."
