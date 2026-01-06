@@ -4,7 +4,7 @@
 
 By leveraging **Stateful Graph Orchestration (LangGraph)** and high-performance local LLMs (like **NVIDIA Nemotron-3**), it automates the entire software development lifecycle (SDLC) from requirements analysis to SOLID code generation.
 
-It features a high-performance web interface powered by **NiceGUI**. Demo on [thearchitect.dev](https://thearchitect.dev/) website ! (In progress)
+It features a web interface powered by **NiceGUI**. Demo on [thearchitect.dev](https://thearchitect.dev/) website ! (In progress)
 
 ![demo](/docs/global_demo.jpg)
 
