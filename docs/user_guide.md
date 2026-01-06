@@ -9,3 +9,7 @@
 1. Submit a CDC via the dashboard
 2. Review the generated analysis, C4 diagrams, and code
 3. Deploy the generated artifacts
+
+
+
+![demo](global_demo.jpg)

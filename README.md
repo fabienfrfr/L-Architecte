@@ -6,7 +6,7 @@ By leveraging **Stateful Graph Orchestration (LangGraph)** and high-performance 
 
 It features a web interface powered by **NiceGUI**. Demo on [thearchitect.dev](https://thearchitect.dev/) website ! (In progress)
 
-![demo](/docs/global_demo.jpg)
+![demo](/docs/thearchitect-banner.jpg)
 
 ## 🏗️ Core Architecture (The Swimlane)
 
