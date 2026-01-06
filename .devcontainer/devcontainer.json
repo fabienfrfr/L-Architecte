@@ -12,7 +12,12 @@
     "workspaceFolder": "/app",
     "overrideCommand": true,
     "features": {
-        "ghcr.io/devcontainers/features/git:1": {}
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/common-utils:2.5.5": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "installRsync": true
+        }
     },
     "customizations": {
         "vscode": {
