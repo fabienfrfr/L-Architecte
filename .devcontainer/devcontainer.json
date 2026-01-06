@@ -17,6 +17,9 @@
             "installZsh": true,
             "configureZshAsDefaultShell": true,
             "installRsync": true
+        },
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "17"
         }
     },
     "customizations": {
@@ -42,7 +45,9 @@
                 "ms-python.python",
                 "ms-python.debugpy",
                 "ms-python.pylint",
-                "ms-python.black-formatter"
+                "ms-python.black-formatter",
+                "jebbs.plantuml",
+                "bierner.markdown-mermaid"
             ]
         }
     },
