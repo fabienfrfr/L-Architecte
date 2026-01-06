@@ -17,6 +17,7 @@
     "customizations": {
         "vscode": {
             "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
                 "python.testing.pytestArgs": [
@@ -24,6 +25,10 @@
                     "specs"
                 ],
                 "python.testing.pytestPath": "pytest",
+                "python.testing.autoTestDiscoverOnSaveEnabled": true,
+                "python.analysis.extraPaths": [
+                    "."
+                ],
                 "python.analysis.typeCheckingMode": "basic",
                 "editor.formatOnSave": true,
                 "python.formatting.provider": "black"
@@ -41,6 +46,6 @@
         6006,
         4317
     ],
-    "postCreateCommand": "pip install -r apps/architect/requirements.txt",
+    "postCreateCommand": "pip install -r apps/architect/requirements.txt && python3 -m pytest --collect-only",
     "remoteUser": "root"
 }
