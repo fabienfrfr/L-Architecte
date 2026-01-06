@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-  # EDGE PROXY: Traefik handles SSL (HTTPS) automatically via Let's Encrypt
   traefik:
     image: traefik:v2.10
     profiles: ["deploy"]
@@ -25,17 +24,15 @@ services:
       - "./letsencrypt:/letsencrypt"
     restart: always
 
-  # PHOENIX: Local Observability & Tracing for LLM Agents
   phoenix:
     image: arizephoenix/phoenix:latest
     container_name: phoenix_service
     ports:
-      - "6006:6006" # Web UI Dashboard
-      - "4317:4317" # OTLP gRPC collector
-      - "4318:4318" # OTLP HTTP collector
+      - "6006:6006"
+      - "4317:4317"
+      - "4318:4318"
     restart: always
 
-  # OLLAMA: Local inference engine (pre-configured with gemma2:270m)
   ollama:
     build:
       context: .
@@ -44,30 +41,30 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     healthcheck:
-      test: ["CMD", "ollama", "show", "gemma3:270m"] # in Ollama.Dockerfile
+      test: ["CMD", "ollama", "show", "gemma3:270m"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: always
 
-  # ARCHITECT SERVICE: The main agentic engine developed by Fabien Furfaro
   architect:
     build:
       context: ../../
       dockerfile: apps/architect/Dockerfile
     container_name: agentic_architect
+    working_dir: /app
+    user: "1000:1000"
     environment:
       - ENV=test
       - OLLAMA_URL=http://ollama:11434
-      # Points to the Phoenix Docker service defined below
       - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:4317
       - PHOENIX_CLIENT_HEADERS=api_key=unused
+      - PYTHONPATH=/app
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.architect.rule=Host(`thearchitect.dev`)"
       - "traefik.http.routers.architect.entrypoints=websecure"
       - "traefik.http.routers.architect.tls.certresolver=myresolver"
-      # NiceGUI default port mapping
       - "traefik.http.services.architect.loadbalancer.server.port=8080"
     ports:
       - "8080:8080"
@@ -76,12 +73,14 @@ services:
         condition: service_healthy
       phoenix:
         condition: service_started
-    cap_add:
-      - SYS_PTRACE
+    privileged: true
     security_opt:
       - seccomp:unconfined
+      - apparmor:unconfined
+    cap_add:
+      - SYS_PTRACE
     volumes:
-      - ../../../:/app # Mount the entire repo for development
+      - ../../:/app
     restart: always
 
 volumes:

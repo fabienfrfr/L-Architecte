@@ -80,4 +80,9 @@ clean: ## Remove virtualenv and python cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	docker system prune -f
 
-.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space
+git-setup: ## Configure Git inside the container using .env values
+	@git config --global user.name "$$(grep GIT_USER_NAME .env | cut -d '=' -f2)"
+	@git config --global user.email "$$(grep GIT_USER_EMAIL .env | cut -d '=' -f2)"
+	@git config --global --add safe.directory /app
+
+.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup

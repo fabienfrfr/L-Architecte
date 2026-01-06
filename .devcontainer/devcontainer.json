@@ -10,6 +10,7 @@
     "dockerComposeFile": "../infra/services/docker-compose.yml",
     "service": "architect",
     "workspaceFolder": "/app",
+    "overrideCommand": true,
     "features": {
         "ghcr.io/devcontainers/features/git:1": {}
     },
@@ -40,10 +41,6 @@
         6006,
         4317
     ],
-    "containerEnv": {
-        "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
-        "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
-    },
-    "postCreateCommand": "git config --global user.name \"$GIT_USER_NAME\" && git config --global user.email \"$GIT_USER_EMAIL\" && git config --global --add safe.directory /app && pip install -r apps/architect/requirements.txt",
+    "postCreateCommand": "pip install -r apps/architect/requirements.txt",
     "remoteUser": "root"
 }

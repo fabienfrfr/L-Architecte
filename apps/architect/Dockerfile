@@ -11,11 +11,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY apps/architect/requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV PYTHONPATH=.
+ENV PYTHONPATH=/app
 
 CMD ["python3", "-m", "apps.architect.main"]
