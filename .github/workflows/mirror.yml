@@ -1,15 +1,18 @@
-name: Mirror to Codeberg
+name: Mirroring
 
 on: [push, delete]
 
 jobs:
-    mirror:
+    mirror-to-codeberg:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout code
+              uses: actions/checkout@v4
               with:
-                  fetch-depth: 0
-            - uses: pixta-dev/repository-mirroring-action@v1
+                  fetch-depth: 0 # Fetch all history for all branches and tags
+
+            - name: Mirror to Codeberg
+              uses: pixta-dev/repository-mirroring-action@v1
               with:
                   target_repo_url: git@codeberg.org:fabienfrfr/AgenticArchitect.git
                   ssh_private_key: ${{ secrets.CODEBERG_SSH_KEY }}
