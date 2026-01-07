@@ -37,59 +37,36 @@ Other relevant resources:
 - [AutoGen – Multi-agent conversation framework for LLM applications](https://github.com/microsoft/autogen)
 - [Elicit – AI research assistant for literature review and scientific workflows](https://elicit.org/)
 
-## Deployment
 
-### 1. Local (Docker Compose)
+## 🚀 Local Deployment
 
-#### Prerequisites
+This project uses a containerized architecture managed by Docker Compose. The infrastructure includes **Traefik** (reverse proxy), **Arize Phoenix** (observability), **Ollama** (LLM engine), and the **AgenticArchitect** application.
 
-- Docker and Docker Compose installed.
-- NVIDIA GPU + NVIDIA Container Toolkit drivers.
+### 📋 Prerequisites
 
-#### Manual
+* **Docker** and **Docker Compose** installed.
+* **Ollama** running on your host or via the provided container.
 
-Only on linux and not recommanded (only for testing) :
+### 🛠️ One-Command Setup
 
-```bash
-sudo apt-get install -y libgirepository-2.0-dev libcairo2-dev pkg-config gir1.2-gtk-3.0
-git clone [https://github.com/fabienfrfr/AgenticArchitect.git](https://github.com/fabienfrfr/AgenticArchitect.git)
-cd AgenticArchitect
-pip install -r apps/architect/requirements.txt
-python -m apps.architect.main
-```
-
-Access the app at [http://localhost:3000](http://localhost:3000). (or native mode)
-
-#### Run
 
 ```bash
-./scripts/deploy.sh local
+# Navigate to the project root
+cd ~/AgenticArchitect
+
+# Start services using the deployment profile
+docker compose -f infra/services/docker-compose.yml up -d --build
+
 ```
 
-Access the app at [http://localhost:3000](http://localhost:3000).
+### 🔍 Service Access
 
----
+| Service |  Local/Internal URL |
+| --- | --- | 
+| **TheArchitect UI** | `http://localhost:8080` |
+| **Arize Phoenix** | `http://localhost:6006` |
+| **Ollama API** | `http://localhost:11434` |
 
-### 2. Cloud (AWS/GCP)
-
-Migrate to OVH
-
-#### Prerequisites
-
-- AWS/GCP account with permissions.
-- Terraform and Helm installed.
-
-#### Run
-
-```bash
-./scripts/deploy.sh cloud
-```
-
-Get the frontend service URL:
-
-```bash
-kubectl get services frontend
-```
 
 ## 📜 License
 
