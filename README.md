@@ -72,6 +72,4 @@ docker compose -f infra/services/docker-compose.yml up -d --build
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
 
-Copyright (c) 2025 **Fabien Furfaro** - [AgenticArchitect](https://github.com/fabienfrfr/AgenticArchitect)
-
-Full license text available in the [LICENSE](./LICENSE) file with is notice in the [NOTICE](./NOTICE) file.
+Copyright (c) 2025 **Fabien Furfaro** - Full license text available in the [LICENSE](./LICENSE) file with is notice in the [NOTICE](./NOTICE) file.
