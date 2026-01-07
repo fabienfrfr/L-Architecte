@@ -19,7 +19,7 @@ class PhoenixConfig:
     def __init__(self) -> None:
         # Phoenix gRPC default is 4317.
         # Using 127.0.0.1 instead of localhost to avoid IPv6 resolution delays.
-        self.endpoint = os.getenv("PHOENIX_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+        self.endpoint = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "http://phoenix:4317")
         self.project_name = "AgenticArchitect"
 
 
