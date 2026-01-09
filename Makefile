@@ -17,6 +17,13 @@ OLLAMA_URL=http://ollama:11434
 PHOENIX_URL=http://phoenix:6006
 PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:4317
 
+
+# Directory and User Variables
+USER_NAME := $(shell whoami)
+GROUP_NAME := $(shell id -gn)
+PROJECT_ROOT := $(shell pwd)
+
+
 ##@ Help
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -91,4 +98,10 @@ git-setup: ## Configure Git inside the container using .env values
 	@git config --global user.email "$$(grep GIT_USER_EMAIL .env | cut -d '=' -f2)"
 	@git config --global --add safe.directory /app
 
-.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup
+# Recursively set ownership and standard permissions
+fix-permissions:
+	sudo chown -R $(USER_NAME):$(GROUP_NAME) $(PROJECT_ROOT)
+	find $(PROJECT_ROOT) -type d -exec chmod 755 {} +
+	find $(PROJECT_ROOT) -type f -exec chmod 644 {} +
+
+.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup fix-permissions
