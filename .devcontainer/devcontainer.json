@@ -10,6 +10,9 @@
     "dockerComposeFile": "../infra/docker-compose.yml",
     "service": "architect",
     "workspaceFolder": "/app",
+    "remoteUser": "vscode",
+    "containerUser": "vscode",
+    "updateRemoteUserUID": true,
     "overrideCommand": true,
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
@@ -56,6 +59,5 @@
         6006,
         4317
     ],
-    "postCreateCommand": "pip install -r apps/architect/requirements.txt && python3 -m pytest --collect-only",
-    "remoteUser": "root"
+    "postCreateCommand": "pip install -r apps/architect/requirements.txt && python3 -m pytest --collect-only"
 }
