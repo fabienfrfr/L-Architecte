@@ -15,11 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build and Start Services
-        run: docker compose -f infra/services/docker-compose.yml up -d --build --wait
+        run: docker compose -f infra/docker-compose.yml up -d --build --wait
 
       - name: Run Tests inside Container
         run: |
-          docker compose -f infra/services/docker-compose.yml exec -T \
+          docker compose -f infra/docker-compose.yml exec -T \
           -e OLLAMA_URL=http://ollama_service:11434 \
           -e PHOENIX_HOST=phoenix_service \
           -e PHOENIX_COLLECTOR_ENDPOINT=http://phoenix_service:4317 \
