@@ -4,8 +4,8 @@ Code Mapper: A bidirectional synchronization tool between code and JSON.
 Optimized with .gitignore support and default pathing.
 
 Usage:
-python scripts/code_mapper.py --to-json
-python scripts/code_mapper.py --from-json scripts/project_structure.json
+python libs/code_mapper.py --to-json
+python libs/code_mapper.py --from-json libs/project_structure.json
 """
 
 import os
@@ -15,9 +15,9 @@ import fnmatch
 from typing import List
 
 # --- Default Configurations ---
-# Default output: scripts/project_structure.json
-DEFAULT_OUTPUT = os.path.join("scripts", "project_structure.json")
-# Default root: The parent directory of the 'scripts' folder
+# Default output: libs/project_structure.json
+DEFAULT_OUTPUT = os.path.join("libs", "project_structure.json")
+# Default root: The parent directory of the 'libs' folder
 DEFAULT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -145,12 +145,12 @@ def main():
         nargs="?",
         const=DEFAULT_OUTPUT,
         metavar="JSON_PATH",
-        help="Generate code from a JSON file (default: scripts/project_structure.json).",
+        help="Generate code from a JSON file (default: libs/project_structure.json).",
     )
     parser.add_argument(
         "--to-json",
         nargs="*",
-        help="Generate JSON from code. Can take [ROOT_DIR] [OUTPUT_JSON]. Defaults to project root and scripts/project_structure.json.",
+        help="Generate JSON from code. Can take [ROOT_DIR] [OUTPUT_JSON]. Defaults to project root and libs/project_structure.json.",
     )
 
     args = parser.parse_args()

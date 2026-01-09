@@ -7,7 +7,7 @@
    * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
     "name": "AgenticArchitect Dev Container",
-    "dockerComposeFile": "../infra/services/docker-compose.yml",
+    "dockerComposeFile": "../infra/docker-compose.yml",
     "service": "architect",
     "workspaceFolder": "/app",
     "overrideCommand": true,

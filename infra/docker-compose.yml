@@ -47,7 +47,7 @@ services:
 
   architect:
     build:
-      context: ../../
+      context: ../
       dockerfile: apps/architect/Dockerfile
     container_name: agentic_architect
     working_dir: /app
@@ -79,7 +79,7 @@ services:
     cap_add:
       - SYS_PTRACE
     volumes:
-      - ../../:/app
+      - ../:/app
     restart: always
 
 volumes:
