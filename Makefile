@@ -9,6 +9,9 @@ DOMAIN = thearchitect.dev
 USER = ubuntu
 PHOENIX_PORT = 6006
 
+# Files
+SCRIPT_MAPPER = libs/code_mapper.py
+
 # Default target
 .DEFAULT_GOAL := help
 
@@ -52,6 +55,10 @@ install: .env ## Create virtualenv and install dependencies
 	$(ACTIVATE) && $(PIP) install --upgrade pip
 	$(ACTIVATE) && $(PIP) install -r requirements.txt
 	@echo "Installation complete."
+
+##@ Mapping
+map: ## Export project structure to JSON
+	$(PYTHON) $(SCRIPT_MAPPER) --to-json
 
 ##@ Storage Management
 space: ## Show docker disk usage
@@ -104,4 +111,4 @@ fix-permissions:
 	find $(PROJECT_ROOT) -type d -exec chmod 755 {} +
 	find $(PROJECT_ROOT) -type f -exec chmod 644 {} +
 
-.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup fix-permissions
+.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup fix-permissions map .env
