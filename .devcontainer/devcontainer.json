@@ -23,6 +23,10 @@
         },
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "enableNonRootDocker": true
         }
     },
     "customizations": {
@@ -49,6 +53,7 @@
                 "ms-python.debugpy",
                 "ms-python.pylint",
                 "ms-python.black-formatter",
+                "ms-toolsai.jupyter",
                 "jebbs.plantuml",
                 "bierner.markdown-mermaid"
             ]

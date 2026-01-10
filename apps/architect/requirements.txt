@@ -5,6 +5,8 @@ pywebview
 
 # Agents & Logic
 langgraph
+langchain
+langchain-community
 langchain-ollama
 chromadb
 pydantic-settings
@@ -22,6 +24,9 @@ pytest-bdd
 pytest-asyncio 
 nest-asyncio
 pytest-dotenv
+
+# Interactive Python
+ipykernel
 
 # Data Analysis
 numpy
