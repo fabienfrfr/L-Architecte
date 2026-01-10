@@ -115,7 +115,7 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
             # Instead of checking for specific extensions, we try to read as text
             try:
                 # We check if it's a text file by trying to read a small chunk
-                with open(file_path, "tr") as check_file:
+                with open(file_path, "tr", encoding="utf-8") as check_file:
                     check_file.read(1024)
 
                 content = read_file_content(file_path)
@@ -123,8 +123,8 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
             except (UnicodeDecodeError, PermissionError):
                 # This skips binary files (images, executables) and restricted files
                 continue
-            except Exception as e:
-                print(f"⚠️ Could not read {relative_path}: {e}")
+            except OSError as e:
+                print(f"⚠️ System error reading {relative_path}: {e}")
 
     project_data = {"files": files}
     os.makedirs(os.path.dirname(os.path.abspath(output_json_path)), exist_ok=True)
@@ -137,6 +137,7 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
 
 # --- Command Line Interface ---
 def main():
+    """Main entry point for the Code Mapper CLI."""
     parser = argparse.ArgumentParser(
         description="Code Mapper: Synchronize project code and JSON structures."
     )
@@ -150,7 +151,10 @@ def main():
     parser.add_argument(
         "--to-json",
         nargs="*",
-        help="Generate JSON from code. Can take [ROOT_DIR] [OUTPUT_JSON]. Defaults to project root and libs/project_structure.json.",
+        help=(
+            "Generate JSON from code. Can take [ROOT_DIR] [OUTPUT_JSON]. "
+            "Defaults to project root and libs/project_structure.json."
+        ),
     )
 
     args = parser.parse_args()
