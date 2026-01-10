@@ -24,40 +24,45 @@
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
         },
-        "customizations": {
-            "vscode": {
-                "settings": {
-                    "python.defaultInterpreterPath": "/usr/local/bin/python",
-                    "python.testing.pytestEnabled": true,
-                    "python.testing.unittestEnabled": false,
-                    "python.testing.pytestArgs": [
-                        "tests",
-                        "specs"
-                    ],
-                    "python.testing.pytestPath": "pytest",
-                    "python.testing.autoTestDiscoverOnSaveEnabled": true,
-                    "python.analysis.extraPaths": [
-                        "."
-                    ],
-                    "python.analysis.typeCheckingMode": "basic",
-                    "editor.formatOnSave": true,
-                    "python.formatting.provider": "black"
-                },
-                "extensions": [
-                    "ms-python.python",
-                    "ms-python.debugpy",
-                    "ms-python.pylint",
-                    "ms-python.black-formatter",
-                    "ms-toolsai.jupyter",
-                    "jebbs.plantuml",
-                    "bierner.markdown-mermaid"
-                ]
-            }
-        },
-        "forwardPorts": [
-            8080,
-            6006,
-            4317
-        ],
-        "postCreateCommand": "pip install -r apps/architect/requirements.txt && python3 -m pytest --collect-only"
-    }
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "enableNonRootDocker": true
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.testing.pytestArgs": [
+                    "tests",
+                    "specs"
+                ],
+                "python.testing.pytestPath": "pytest",
+                "python.testing.autoTestDiscoverOnSaveEnabled": true,
+                "python.analysis.extraPaths": [
+                    "."
+                ],
+                "python.analysis.typeCheckingMode": "basic",
+                "editor.formatOnSave": true,
+                "python.formatting.provider": "black"
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "ms-python.pylint",
+                "ms-python.black-formatter",
+                "ms-toolsai.jupyter",
+                "jebbs.plantuml",
+                "bierner.markdown-mermaid"
+            ]
+        }
+    },
+    "forwardPorts": [
+        8080,
+        6006,
+        4317
+    ],
+    "postCreateCommand": "pip install -r apps/architect/requirements.txt && python3 -m pytest --collect-only"
+}

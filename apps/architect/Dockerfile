@@ -12,9 +12,8 @@ RUN apt-get update && apt-get install -y \
     gir1.2-gtk-3.0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix for girepository-2.0.pc not being found
-RUN ln -s /usr/lib/$(uname -m)-linux-gnu/pkgconfig/gobject-introspection-1.0.pc \
-    /usr/lib/$(uname -m)-linux-gnu/pkgconfig/girepository-2.0.pc
+# Fix pkg-config path for gobject-introspection
+ENV PKG_CONFIG_PATH="/usr/lib/$(uname -m)-linux-gnu/pkgconfig:/usr/share/pkgconfig"
 
 WORKDIR /app
 
