@@ -64,5 +64,6 @@
         6006,
         4317
     ],
+    // TODO: change to make command (clean + install + test + git-setup)
     "postCreateCommand": "pip install -r apps/architect/requirements.txt && python3 -m pytest --collect-only"
 }

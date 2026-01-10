@@ -87,6 +87,7 @@ docker-run: ## Build and start local containers
 services-down: ## Stop ALL running containers and free RAM immediately
 	@docker stop $$(docker ps -q) 2>/dev/null || true
 	@docker container prune -f
+	@docker network prune -f
 	@docker ps
 
 ##@ Deployment
@@ -96,9 +97,9 @@ deploy: ## Deploy the project to OVH VPS
 	ssh $(USER)@$(DOMAIN) "cd ~/AgenticArchitect && docker compose -f infra/services/docker-compose.yml --profile deploy up -d --build"
 
 clean: ## Remove virtualenv and python cache files
-	rm -rf $(VENV)
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	docker system prune -f
+	find . -type f -name "*.pyc" -delete
+	rm -rf .pytest_cache
 
 git-setup: ## Configure Git inside the container using .env values
 	@git config --global user.name "$$(grep GIT_USER_NAME .env | cut -d '=' -f2)"
