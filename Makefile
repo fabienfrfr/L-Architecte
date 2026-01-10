@@ -100,6 +100,8 @@ clean: ## Remove virtualenv and python cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	rm -rf .pytest_cache
+	rm -rf .ruff_cache
+	rm -rf .mypy_cache
 
 git-setup: ## Configure Git inside the container using .env values
 	@git config --global user.name "$$(grep GIT_USER_NAME .env | cut -d '=' -f2)"
@@ -112,4 +114,13 @@ fix-permissions:
 	find $(PROJECT_ROOT) -type d -exec chmod 755 {} +
 	find $(PROJECT_ROOT) -type f -exec chmod 644 {} +
 
-.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup fix-permissions map .env
+
+##@ Development Setup
+setup-dev: .env
+	$(MAKE) clean
+	$(PIP) install -r apps/architect/requirements.txt
+	$(MAKE) git-setup
+	$(PYTHON) -m pytest --collect-only
+	@echo "🚀 AgenticArchitect is ready!"
+
+.PHONY: help install run test docker-run deploy clean services-down nuke nuke-vps space git-setup fix-permissions map .env setup-dev

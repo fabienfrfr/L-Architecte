@@ -36,7 +36,7 @@ Other relevant resources:
 - [LangGraph – Framework for building stateful, multi-actor LLM applications](https://github.com/langchain-ai/langgraph)
 - [AutoGen – Multi-agent conversation framework for LLM applications](https://github.com/microsoft/autogen)
 - [Elicit – AI research assistant for literature review and scientific workflows](https://elicit.org/)
-
+- [Claude – Agents Inspirations](https://github.com/VoltAgent/awesome-claude-code-subagents)
 
 ## 🚀 Local Deployment
 
