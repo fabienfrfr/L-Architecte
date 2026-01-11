@@ -32,21 +32,31 @@ def pm_node(state: AgentState) -> Dict[str, Any]:
     current_retry = state.get("retry_count", 0)
 
     try:
+        # Step 1: Initial SMART Check
         response = agent.check_requirements(state["requirements"])
-        # Support for different response formats (string or content object)
         content = response.content if hasattr(response, "content") else response
         data = json.loads(content)
 
+        # Step 2: Adaptive Logic
+        # If not SMART, we use the agent's second method to fill gaps
+        if not data.get("is_smart", False):
+            logging.info(f"Requirements not SMART. Calling hypotheses generation...")
+            hypotheses_res = agent.fill_gaps_with_hypotheses(data)
+            
+            # Integration of hypotheses into the charter data
+            hyp_content = hypotheses_res.content if hasattr(hypotheses_res, "content") else hypotheses_res
+            hyp_data = json.loads(hyp_content)
+            data["hypotheses"] = hyp_data.get("hypotheses", [])
+
         return {
             "charter_data": data,
-            "is_ready": data.get("is_smart", False),
+            "is_ready": True, # We force True because we now have hypotheses to proceed
             "latest_error": None,
             "retry_count": current_retry,
         }
     except Exception as e:
         logging.error(f"Inference error on try {current_retry}: {str(e)}")
         return {"latest_error": str(e), "retry_count": current_retry + 1}
-
 
 def analyst_node(state: AgentState) -> Dict[str, Any]:
     """Analyst Agent: Performs data discovery."""

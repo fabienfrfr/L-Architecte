@@ -5,7 +5,7 @@ from apps.architect.core.llm import get_llm
 class PMAgent:
     def __init__(self):
         self.llm = get_llm(json_mode=True)
-        self.prompt = ChatPromptTemplate.from_messages(
+        self.check_prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
@@ -18,7 +18,19 @@ class PMAgent:
                 ("user", "{requirements}"),
             ]
         )
+        self.gen_prompt = ChatPromptTemplate.from_template(
+            "Based on these validated points, generate 5 detailed technical requirements: {points}"
+        )
 
     def check_requirements(self, requirements: str):
-        chain = self.prompt | self.llm
+        chain = self.check_prompt | self.llm
         return chain.invoke({"requirements": requirements})
+
+    def generate_specs(self, validated_data: dict):
+        chain = self.gen_prompt | self.llm
+        return chain.invoke({"points": validated_data})
+
+    def fill_gaps_with_hypotheses(self, report: dict):
+        prompt = ChatPromptTemplate.from_template("Generate hypotheses for these gaps: {gaps}")
+        chain = prompt | self.llm
+        return chain.invoke({"gaps": report.get("gaps", [])})

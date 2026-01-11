@@ -1,123 +1,103 @@
 # %% [markdown]
-# # 🏗️ TheArchitect: Agentic R&D Lab
+# # 🏗️ TheArchitect: Minimalist R&D Lab
 # **Author:** Fabien Furfaro
 # **Project:** [AgenticArchitect](https://github.com/fabienfrfr/AgenticArchitect)
-#
-# > **Official R&D Sandbox** | *Methodology: Analyst -> Architect -> Engineer*
-#
-# This lab allows for isolated testing of the **TheArchitect** core logic.
-# It simulates the first two stages of the agentic pipeline using **Gemma 3 270m**.
-
-# %% [markdown]
-# ## 1. Environment & Requirements
-# Run this cell to initialize the persistent session and load the model.
+# 
+# > **Methodology:** Functional Testing (Playground Mode)
+# > **Goal:** Testing multi-step agent logic: Analysis -> Generation.
 
 # %%
 import asyncio
 import json
 import nest_asyncio
-from typing import List, Optional
-from pydantic import BaseModel, Field
-from langchain_community.llms import Ollama
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
+from apps.architect.core.llm import get_llm
 
 nest_asyncio.apply()
 
-# Configuration
-LLM_MODEL = "gemma3:270m"
-OLLAMA_URL = "http://localhost:11434"
-
-# Persistent LLM Connection
-llm = Ollama(model=LLM_MODEL, base_url=OLLAMA_URL, format="json")
-print(f"🚀 System Online | Model: {LLM_MODEL} | GitHub: fabienfrfr/AgenticArchitect")
-
 # %% [markdown]
-# ## 2. Methodology: Structured Project Charter
-# Definition of the strict data contract for the PM Agent.
-
+# ## 1. Functional Playground (Multi-Capability)
 
 # %%
-class CadrageReport(BaseModel):
-    project_name: str = Field(description="Formal name of the project")
-    vision: str = Field(description="High-level project goals")
-    needs: List[str] = Field(description="List of functional requirements")
-    constraints: List[str] = Field(
-        description="Technical boundaries (Python, Docker, SQL)"
+async def run_pm_analysis(user_input: str):
+    """Capability 1: Check SMART criteria and identify gaps."""
+    print(f"⏳ [Step 1] Analyzing Requirements...")
+    llm = get_llm(json_mode=True)
+    
+    system_prompt = (
+        "Role: Strict Project Manager.\n"
+        "Analyze if input is SMART. If not, set is_smart: false and list gaps.\n"
+        "Return ONLY JSON: {\"is_smart\": bool, \"gaps\": [], \"project_name\": \"...\"}"
     )
-    is_smart: bool = Field(description="Validation: Is the request actionable?")
-    missing_info: Optional[str] = Field(description="Feedback if is_smart is False")
+    
+    try:
+        response = await llm.ainvoke(f"{system_prompt}\n\nInput: {user_input}")
+        content = response.content if hasattr(response, 'content') else str(response)
+        return json.loads(content)
+    except Exception as e:
+        return {"error": str(e)}
 
-
-parser = JsonOutputParser(pydantic_object=CadrageReport)
-print("✅ Data Contract defined.")
-
-# %% [markdown]
-# ## 3. Agentic Nodes
-# ### A. The PM Agent (The Gatekeeper)
-# Transforms raw user intent into a validated JSON charter.
-
-# %%
-PM_PROMPT = """
-Role: Lead Project Manager (TheArchitect)
-Task: Produce a JSON CadrageReport.
-Requirement: Be strict on SMART criteria.
-
-{format_instructions}
-
-User Input: {input}
-"""
-
-
-async def run_pm(user_input: str):
-    prompt = ChatPromptTemplate.from_template(PM_PROMPT)
-    chain = prompt | llm | parser
-    return await chain.ainvoke(
-        {"input": user_input, "format_instructions": parser.get_format_instructions()}
+async def generate_hypotheses_specs(analysis_result: dict):
+    """Capability 2: Take the gaps and propose technical solutions."""
+    print(f"⏳ [Step 2] Filling Gaps with Hypotheses...")
+    llm = get_llm(json_mode=True)
+    
+    system_prompt = (
+        "Role: Technical Architect.\n"
+        "Based on the identified gaps, propose 3 technical hypotheses to unblock the project.\n"
+        "Return ONLY JSON: {\"hypotheses\": [\"tech stack assumption\", ...]}"
     )
-
-
-# %% [markdown]
-# ### B. The Analyst Agent (BDD Expert)
-# Converts the validated charter into Gherkin features.
-
-# %%
-ANALYST_PROMPT = """
-Role: System Analyst
-Context: {charter}
-Task: Generate Gherkin (.feature) files.
-Output: Markdown blocks only.
-"""
-
-
-async def run_analyst(charter: dict):
-    prompt = ChatPromptTemplate.from_template(ANALYST_PROMPT)
-    chain = prompt | llm
-    return await chain.ainvoke({"charter": json.dumps(charter)})
-
+    
+    try:
+        response = await llm.ainvoke(f"{system_prompt}\n\nAnalysis: {json.dumps(analysis_result)}")
+        content = response.content if hasattr(response, 'content') else str(response)
+        return json.loads(content)
+    except Exception as e:
+        return {"error": str(e)}
 
 # %% [markdown]
-# ## 4. Execution Pipeline
-# Modify the `query` below and run this cell to test the full flow.
-
+# ## 2. Procedural Execution (The Workflow)
 
 # %%
-async def execute_playground():
-    # Change this query to test different scenarios
-    query = "I want a Python API for library management with Docker and SQL"
+query = "I want a library management API in Python"
+print(f"🚀 Starting Playground Pipeline: '{query}'")
 
-    # Step 1: PM Processing
-    charter = await run_pm(query)
-    print(f"\nPM Status: {'✅ SMART' if charter['is_smart'] else '❌ INCOMPLETE'}")
+# Step 1: Analysis
+analysis = await run_pm_analysis(query)
 
-    # Step 2: Analyst Processing
-    if charter["is_smart"]:
-        specs = await run_analyst(charter)
-        print("\n--- BDD SPECIFICATIONS ---\n")
-        print(specs)
+if not analysis.get("is_smart"):
+    print(f"❌ Project is not SMART. Gaps: {analysis.get('gaps')}")
+    
+    # Step 2: Adaptive Logic (Filling Gaps)
+    improvements = await generate_hypotheses_specs(analysis)
+    
+    print("\n[TheArchitect Adaptive Response]")
+    for h in improvements.get('hypotheses', []):
+        print(f" 💡 Hypothesis: {h}")
+else:
+    print("✅ Project is SMART and ready for Analyst stage.")
+
+# %% [markdown]
+# ## 3. Comparison with Source (Parity Check)
+
+# %%
+from apps.architect.agents.pm import PMAgent 
+
+def test_real_agent():
+    """
+    Validates the official project logic.
+    TODO: Refactor PMAgent to include multi-method support (check_requirements + generate_hypotheses)
+    based on the playground tests above. --> add in orchestrator this cycle also.
+    """
+    print("\n" + "-"*10 + " Official Source Test " + "-"*10)
+    agent = PMAgent()
+    
+    # Current single-method implementation
+    result = agent.check_requirements("I want a library management API in Python")
+    
+    print("\n--- Official Agent Output ---")
+    if hasattr(result, 'content'):
+        print(result.content)
     else:
-        print(f"Gaps identified: {charter['missing_info']}")
+        print(json.dumps(result, indent=2))
 
-
-# Direct execution in the Jupyter/Interactive kernel
-await execute_playground()
+test_real_agent()
