@@ -46,7 +46,14 @@
                 ],
                 "python.analysis.typeCheckingMode": "basic",
                 "editor.formatOnSave": true,
-                "python.formatting.provider": "black"
+                "python.formatting.provider": "black",
+                /* --- Configuration Notebook/Jupytext --- */
+                "jupyter.interactiveWindow.viewMode": "singleColumn",
+                "notebook.formatOnSave.enabled": true,
+                "workbench.editorAssociations": {
+                    "*.ipynb": "jupyter-notebook",
+                    "*.lab.py": "jupyter-notebook"
+                }
             },
             "extensions": [
                 "ms-python.python",
@@ -54,6 +61,9 @@
                 "ms-python.pylint",
                 "ms-python.black-formatter",
                 "ms-toolsai.jupyter",
+                "ms-toolsai.jupyter-renderers",
+                "ms-toolsai.jupyter-keymap",
+                "mwouts.jupytext",
                 "jebbs.plantuml",
                 "bierner.markdown-mermaid"
             ]

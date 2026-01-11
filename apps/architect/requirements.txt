@@ -27,6 +27,7 @@ pytest-dotenv
 
 # Interactive Python
 ipykernel
+jupytext
 
 # Data Analysis
 numpy
