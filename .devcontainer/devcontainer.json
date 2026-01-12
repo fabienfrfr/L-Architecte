@@ -50,7 +50,14 @@
                 "python.analysis.typeCheckingMode": "basic",
                 "editor.formatOnSave": true,
                 "python.formatting.provider": "black",
-                "marimo.openAsMarimo": true
+                "marimo.openAsMarimo": true,
+                "marimo.run.args": [
+                    "--root",
+                    "${workspaceFolder}"
+                ],
+                "marimo.env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
             },
             "extensions": [
                 "ms-python.python",
