@@ -73,14 +73,11 @@ services:
         condition: service_healthy
       phoenix:
         condition: service_started
-    privileged: true
-    security_opt:
-      - seccomp:unconfined
-      - apparmor:unconfined
     cap_add:
       - SYS_PTRACE
     volumes:
       - ../:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: always
 
 
