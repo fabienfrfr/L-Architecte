@@ -27,6 +27,7 @@ pytest-dotenv
 
 # Interactive Python
 ipykernel
+marimo
 
 # Data Analysis
 numpy

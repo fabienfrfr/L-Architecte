@@ -24,6 +24,7 @@
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
         },
+        "ghcr.io/astral-sh/uv/install-uv:1": {},
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "version": "latest",
             "enableNonRootDocker": true
@@ -49,7 +50,8 @@
                 ],
                 "python.analysis.typeCheckingMode": "basic",
                 "editor.formatOnSave": true,
-                "python.formatting.provider": "black"
+                "python.formatting.provider": "black",
+                "marimo.openAsMarimo": true
             },
             "extensions": [
                 "ms-python.python",
@@ -59,6 +61,7 @@
                 "ms-toolsai.jupyter",
                 "ms-toolsai.jupyter-renderers",
                 "ms-toolsai.jupyter-keymap",
+                "marimo-team.vscode-marimo",
                 "jebbs.plantuml",
                 "bierner.markdown-mermaid"
             ]
@@ -69,5 +72,5 @@
         6006,
         4317
     ],
-    "postCreateCommand": "make setup-dev"
+    "postCreateCommand": "uv make setup-dev"
 }
