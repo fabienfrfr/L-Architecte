@@ -22,6 +22,17 @@ The system follows a strict automated workflow based on an agentic bus:
 
 While general-purpose agents like Skywork, Manus, or Genspark excel at rapid task execution, **AgenticArchitect** focuses on the craft of software engineering. It is not just a tool for generating results; it is a framework for building sustainable architecture, enforcing rigorous methodologies, and maintaining total sovereignty over your local infrastructure. This approach, designed to automate software design, shares a philosophical kinship with the [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD), but focuses on a native, local, autonomous, and simplified implementation for immediate execution.
 
+
+---
+
+### 🎯 Roadmap: The Path to "Master Architect"
+
+One of the core goals of **AgenticArchitect** is to achieve **Self-Evolution**. **AgenticArchitect** is also a personal laboratory for mastering cloud architecture standards. The goal is to align the agents' outputs with official certification requirements to ensure industrial-grade designs.
+
+* **Current focus:** Training the agents to respect **OVHcloud Solutions Architect** standards (vRack isolation, S3 compliance, and sovereign data management).
+* **Methodology:** Implementing **iSAQB** agnostic patterns to move beyond simple "code generation" toward true system engineering.
+
+
 ## 🔍 Related Research & Agentic Tools
 
 Here are some useful resources and projects for deep research and agentic AI systems:
