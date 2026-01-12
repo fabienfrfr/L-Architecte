@@ -10,10 +10,13 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-dev \
     libcairo2-dev \
     gir1.2-gtk-3.0 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Fix pkg-config path for gobject-introspection
 ENV PKG_CONFIG_PATH="/usr/lib/$(uname -m)-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 

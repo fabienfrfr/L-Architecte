@@ -27,6 +27,7 @@ pytest-dotenv
 
 # Interactive Python
 ipykernel
+jupytext
 marimo
 
 # Data Analysis

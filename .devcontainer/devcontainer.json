@@ -24,7 +24,6 @@
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
         },
-        "ghcr.io/astral-sh/uv/install-uv:1": {},
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "version": "latest",
             "enableNonRootDocker": true
@@ -72,5 +71,5 @@
         6006,
         4317
     ],
-    "postCreateCommand": "uv make setup-dev"
+    "postCreateCommand": "make setup-dev"
 }
