@@ -37,11 +37,17 @@ def _(mo):
 
 
 @app.cell
-def _(get_llm, json):
+def _(get_llm):
+    llm = get_llm(json_mode=True)
+
+    return (llm,)
+
+
+@app.cell
+def _(json, llm):
     async def run_pm_analysis(user_input: str):
         """Capability 1: Check SMART criteria and identify gaps."""
         print(f"⏳ [Step 1] Analyzing Requirements...")
-        llm = get_llm(json_mode=True)
 
         system_prompt = (
             "Role: Strict Project Manager.\n"
@@ -59,7 +65,6 @@ def _(get_llm, json):
     async def generate_hypotheses_specs(analysis_result: dict):
         """Capability 2: Take the gaps and propose technical solutions."""
         print(f"⏳ [Step 2] Filling Gaps with Hypotheses...")
-        llm = get_llm(json_mode=True)
 
         system_prompt = (
             "Role: Technical Architect.\n"
@@ -103,6 +108,12 @@ async def _(generate_hypotheses_specs, run_pm_analysis):
             print(f" 💡 Hypothesis: {h}")
     else:
         print("✅ Project is SMART and ready for Analyst stage.")
+    return
+
+
+@app.cell
+def _(llm):
+    llm
     return
 
 

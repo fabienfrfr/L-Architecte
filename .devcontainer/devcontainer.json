@@ -68,6 +68,7 @@
                 "ms-toolsai.jupyter-renderers",
                 "ms-toolsai.jupyter-keymap",
                 "marimo-team.vscode-marimo",
+                "stateful.runme",
                 "jebbs.plantuml",
                 "bierner.markdown-mermaid"
             ]
