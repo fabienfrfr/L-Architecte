@@ -5,7 +5,6 @@ metadata:
   name: agentic-architect
 ---
 # --- 1. PERSISTENT STORAGE (Ollama Models) ---
-# Ensures LLM weights (Gemma 270m) persist across pod restarts
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -16,7 +15,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi # Adjust based on expected model sizes
+      storage: 1Gi
 ---
 # --- 2. OLLAMA SERVICE (The AI Engine) ---
 apiVersion: apps/v1
@@ -36,18 +35,22 @@ spec:
     spec:
       containers:
       - name: ollama
-        image: ollama-local:latest # Vendor-agnostic local image
+        image: ollama/ollama:latest # Use official image for k3s
         ports:
         - containerPort: 11434
         volumeMounts:
         - name: data
           mountPath: /root/.ollama
-        # Healthcheck: Ensures Gemma model is loaded before accepting traffic
+        # Automatic download of gemma3:270m on start
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "ollama run gemma3:270m"]
         readinessProbe:
           exec:
-            command: ["ollama", "show", "gemma3:270m"]
-          initialDelaySeconds: 10
-          periodSeconds: 15
+            command: ["ollama", "list"]
+          initialDelaySeconds: 15
+          periodSeconds: 20
       volumes:
       - name: data
         persistentVolumeClaim:
@@ -66,7 +69,7 @@ spec:
     port: 11434
     targetPort: 11434
 ---
-# --- 3. ARIZE PHOENIX (Observability & Tracing) ---
+# --- 3. ARIZE PHOENIX (Observability) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -85,8 +88,8 @@ spec:
       - name: phoenix
         image: arizephoenix/phoenix:latest
         ports:
-        - containerPort: 6006 # Web UI
-        - containerPort: 4317 # gRPC Collector
+        - containerPort: 6006
+        - containerPort: 4317
 ---
 apiVersion: v1
 kind: Service
@@ -99,10 +102,12 @@ spec:
   ports:
   - name: ui
     port: 6006
+    targetPort: 6006
   - name: grpc
     port: 4317
+    targetPort: 4317
 ---
-# --- 4. THE ARCHITECT (Core Agentic Application) ---
+# --- 4. THE ARCHITECT (Core Application) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -120,6 +125,7 @@ spec:
       containers:
       - name: agentic-architect
         image: agentic-architect-local:latest
+        imagePullPolicy: IfNotPresent # Required for local k3d images
         workingDir: /app
         env:
         - name: ENV
@@ -128,7 +134,6 @@ spec:
           value: "http://ollama:11434"
         - name: PHOENIX_COLLECTOR_ENDPOINT
           value: "http://phoenix:4317"
-        # Security context for advanced debugging/tracing capabilities
         securityContext:
           capabilities:
             add: ["SYS_PTRACE"]
@@ -141,6 +146,7 @@ metadata:
   name: architect-service
   namespace: agentic-architect
 spec:
+  type: ClusterIP
   selector:
     app: architect
   ports:
@@ -148,8 +154,7 @@ spec:
     port: 8080
     targetPort: 8080
 ---
-# --- 5. INGRESS CONTROLLER (Traefik Routing) ---
-# Standard K3s/K3d Ingress using built-in Traefik controller
+# --- 5. INGRESS CONTROLLER (Routing) ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

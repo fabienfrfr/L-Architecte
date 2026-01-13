@@ -10,17 +10,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    steps:
+steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build and Start Services
-        run: docker compose -f infra/docker-compose.yml up -d --build --wait
+      - name: Install K3D and Deploy
+        run: bash infra/k3d-deploy.sh
 
-      - name: Run Tests inside Container
-        run: |
-          docker compose -f infra/docker-compose.yml exec -T \
-          -e OLLAMA_URL=http://ollama_service:11434 \
-          -e PHOENIX_HOST=phoenix_service \
-          -e PHOENIX_COLLECTOR_ENDPOINT=http://phoenix_service:4317 \
-          architect pytest tests/
+      - name: Wait for Pods
+        run: kubectl wait --for=condition=available --timeout=300s deployment/architect -n agentic-architect
+
+      - name: Run Pytest
+        run: kubectl exec -n agentic-architect deployments/architect -- pytest tests/

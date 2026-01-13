@@ -7,8 +7,9 @@
    * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
     "name": "AgenticArchitect Dev Container",
-    "dockerComposeFile": "../infra/docker-compose.yml",
-    "service": "architect",
+    //"dockerComposeFile": "../infra/docker-compose.yml",
+    //"service": "architect",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11",
     "workspaceFolder": "/app",
     "remoteUser": "vscode",
     "containerUser": "vscode",
@@ -23,6 +24,9 @@
         },
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
+        },
+        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+            "version": "latest"
         },
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "version": "latest",
@@ -79,5 +83,5 @@
         6006,
         4317
     ],
-    "postCreateCommand": "make setup-dev"
+    "postCreateCommand": "bash infra/k3d-deploy.sh && make setup-dev"
 }
