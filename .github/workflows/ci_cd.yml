@@ -23,6 +23,8 @@ jobs:
         run: |
           kubectl get pods -n agentic-architect -o wide
           kubectl get svc -n agentic-architect
+          kubectl get events -n agentic-architect --sort-by='.lastTimestamp' | tail -n 10
+          kubectl describe pod -l app=ollama -n agentic-architect
 
       - name: Wait for Pods
         run: |
