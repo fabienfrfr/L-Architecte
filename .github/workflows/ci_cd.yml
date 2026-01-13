@@ -19,24 +19,19 @@ jobs:
       - name: Install K3D and Deploy
         run: bash infra/k3d-deploy.sh
 
-      - name: Infrastructure Status
+      - name: Infrastructure Status (Debug)
         run: |
           kubectl get pods -n agentic-architect -o wide
           kubectl get svc -n agentic-architect
           kubectl get events -n agentic-architect --sort-by='.lastTimestamp' | tail -n 10
           kubectl describe pod -l app=ollama -n agentic-architect
+          kubectl describe pod -l app=architect -n agentic-architect
 
       - name: Wait for Pods
         run: |
           kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s
           kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s
-
-      - name: Debug Infrastructure
-        run: |
-          echo "--- Models present ---"
           kubectl exec -n agentic-architect deployments/ollama -- ollama list
-          echo "--- Pods status ---"
-          kubectl get pods -n agentic-architect
 
       - name: Run Pytest
         run: |
