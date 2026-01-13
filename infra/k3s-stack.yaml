@@ -129,11 +129,15 @@ spec:
         workingDir: /app
         env:
         - name: ENV
-          value: "production"
+          value: "test"
         - name: OLLAMA_URL
           value: "http://ollama:11434"
+        - name: PHOENIX_URL
+          value: "http://phoenix:6006"
         - name: PHOENIX_COLLECTOR_ENDPOINT
           value: "http://phoenix:4317"
+        - name: PYTHONPATH
+          value: "."
         securityContext:
           capabilities:
             add: ["SYS_PTRACE"]
