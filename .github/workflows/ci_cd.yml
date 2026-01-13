@@ -9,8 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
-steps:
+    steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -18,7 +20,9 @@ steps:
         run: bash infra/k3d-deploy.sh
 
       - name: Wait for Pods
-        run: kubectl wait --for=condition=available --timeout=300s deployment/architect -n agentic-architect
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/architect -n agentic-architect
 
       - name: Run Pytest
-        run: kubectl exec -n agentic-architect deployments/architect -- pytest tests/
+        run: |
+          kubectl exec -n agentic-architect deployments/architect -- pytest tests/
