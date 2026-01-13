@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
       - name: ollama
-        image: custom-ollama-gemma:latest
+        image: registry.localhost:5000/custom-ollama-gemma:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 11434
@@ -120,7 +120,7 @@ spec:
     spec:
       containers:
       - name: agentic-architect
-        image: agentic-architect-local:latest
+        image: registry.localhost:5000/agentic-architect-local:latest
         imagePullPolicy: IfNotPresent # Required for local k3d images
         workingDir: /app
         env:

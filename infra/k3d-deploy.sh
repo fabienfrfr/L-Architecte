@@ -20,26 +20,32 @@ fi
 if ! k3d cluster get $CLUSTER_NAME &>/dev/null; then
     echo "🏗️ Creating cluster $CLUSTER_NAME..."
     k3d cluster create $CLUSTER_NAME \
+        --registry-create "registry.localhost:5000" \
         --k3s-arg '--disable=traefik@server:*' \
         -p "8080:80@loadbalancer" \
         --wait
 fi
 
-# 3. Build des images (Le cœur de la performance)
-echo "📦 Building $ARCHITECT_IMAGE..."
-docker build -t $ARCHITECT_IMAGE \
-    -f "$PROJECT_ROOT/apps/architect/Dockerfile" \
-    "$PROJECT_ROOT"
+# 2. Création du cluster AVEC un registre local (indispensable pour les gros LLM)
+if ! k3d cluster get $CLUSTER_NAME &>/dev/null; then
+    echo "🏗️ Creating cluster $CLUSTER_NAME with local registry..."
+    k3d cluster create $CLUSTER_NAME \
+        --registry-create "registry.localhost:5000" \
+        --k3s-arg '--disable=traefik@server:*' \
+        -p "8080:80@loadbalancer" \
+        --wait
+fi
 
-echo "📦 Building $OLLAMA_IMAGE (This includes Gemma 3:270m)..."
-docker build -t $OLLAMA_IMAGE \
-    -f "$PROJECT_ROOT/infra/Ollama.Dockerfile" \
-    "$PROJECT_ROOT"
+# 3. Build avec le tag du registre local
+echo "📦 Building images..."
+docker build -t "k3d-registry.localhost:5000/$ARCHITECT_IMAGE" -f "$PROJECT_ROOT/apps/architect/Dockerfile" "$PROJECT_ROOT"
+docker build -t "k3d-registry.localhost:5000/$OLLAMA_IMAGE" -f "$PROJECT_ROOT/infra/Ollama.Dockerfile" "$PROJECT_ROOT"
 
-# 4. Importation dans le cluster (Crucial pour k3d)
-echo "📥 Importing images to k3d..."
-k3d image import $ARCHITECT_IMAGE -c $CLUSTER_NAME
-k3d image import $OLLAMA_IMAGE -c $CLUSTER_NAME
+# 4. Push direct (beaucoup moins gourmand que 'import')
+echo "🚀 Pushing images to local registry..."
+docker push "k3d-registry.localhost:5000/$ARCHITECT_IMAGE"
+docker push "k3d-registry.localhost:5000/$OLLAMA_IMAGE"
+
 
 # 5. Déploiement des Manifestes
 echo "⎈ Applying manifests..."
