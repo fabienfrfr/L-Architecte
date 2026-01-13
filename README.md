@@ -3,6 +3,8 @@
 [![Codeberg](https://img.shields.io/badge/Codeberg-2185d0?style=for-the-badge&logo=gitea&logoColor=white)](https://codeberg.org/fabienfrfr/AgenticArchitect)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fabienfrfr/AgenticArchitect)
 
+> ⚠️ **Work in Progress:** We are currently migrating our orchestration layer from `docker-compose` to **K3s/K3d**. 🚜🚧
+
 **AgenticArchitect** (or **TheArchitect**) is a local-first multi-agent system designed to transform raw client specifications into production-ready AI and Data solutions.
 
 By leveraging **Stateful Graph Orchestration (LangGraph)** and high-performance local LLMs (like **NVIDIA Nemotron-3**), it automates the entire software development lifecycle (SDLC) from requirements analysis to SOLID code generation.
@@ -58,6 +60,7 @@ This project uses a containerized architecture managed by Docker Compose. The in
 * **Docker** and **Docker Compose** installed.
 * **Ollama** running on your host or via the provided container.
 
+
 ### 🛠️ One-Command Setup
 
 
@@ -66,7 +69,7 @@ This project uses a containerized architecture managed by Docker Compose. The in
 cd ~/AgenticArchitect
 
 # Start services using the deployment profile
-docker compose -f infra/services/docker-compose.yml up -d --build
+docker compose -f infra/docker-compose.yml up -d --build
 
 ```
 

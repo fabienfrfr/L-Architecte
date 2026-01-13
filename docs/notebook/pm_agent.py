@@ -39,7 +39,6 @@ def _(mo):
 @app.cell
 def _(get_llm):
     llm = get_llm(json_mode=True)
-
     return (llm,)
 
 
@@ -108,12 +107,6 @@ async def _(generate_hypotheses_specs, run_pm_analysis):
             print(f" 💡 Hypothesis: {h}")
     else:
         print("✅ Project is SMART and ready for Analyst stage.")
-    return
-
-
-@app.cell
-def _(llm):
-    llm
     return
 
 
