@@ -21,7 +21,15 @@ jobs:
 
       - name: Wait for Pods
         run: |
-          kubectl wait --for=condition=available --timeout=300s deployment/architect -n agentic-architect
+          kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s
+          kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s
+
+      - name: Debug Infrastructure
+        run: |
+          echo "--- Models present ---"
+          kubectl exec -n agentic-architect deployments/ollama -- ollama list
+          echo "--- Pods status ---"
+          kubectl get pods -n agentic-architect
 
       - name: Run Pytest
         run: |
