@@ -38,7 +38,8 @@ docker build -t $OLLAMA_IMAGE \
 
 # 4. Importation dans le cluster (Crucial pour k3d)
 echo "📥 Importing images to k3d..."
-k3d image import $ARCHITECT_IMAGE $OLLAMA_IMAGE -c $CLUSTER_NAME
+k3d image import $ARCHITECT_IMAGE -c $CLUSTER_NAME
+k3d image import $OLLAMA_IMAGE -c $CLUSTER_NAME
 
 # 5. Déploiement des Manifestes
 echo "⎈ Applying manifests..."

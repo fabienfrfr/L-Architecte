@@ -15,7 +15,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 20Gi
 ---
 # --- 2. OLLAMA SERVICE (The AI Engine) ---
 apiVersion: apps/v1
