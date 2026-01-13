@@ -19,6 +19,11 @@ jobs:
       - name: Install K3D and Deploy
         run: bash infra/k3d-deploy.sh
 
+      - name: Infrastructure Status
+        run: |
+          kubectl get pods -n agentic-architect -o wide
+          kubectl get svc -n agentic-architect
+
       - name: Wait for Pods
         run: |
           kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s
