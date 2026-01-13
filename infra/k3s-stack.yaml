@@ -35,22 +35,18 @@ spec:
     spec:
       containers:
       - name: ollama
-        image: ollama/ollama:latest # Use official image for k3s
+        image: custom-ollama-gemma:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 11434
         volumeMounts:
         - name: data
           mountPath: /root/.ollama
-        # Automatic download of gemma3:270m on start
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "ollama run gemma3:270m"]
         readinessProbe:
           exec:
             command: ["ollama", "list"]
-          initialDelaySeconds: 15
-          periodSeconds: 20
+          initialDelaySeconds: 2
+          periodSeconds: 5
       volumes:
       - name: data
         persistentVolumeClaim:
