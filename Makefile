@@ -80,7 +80,7 @@ test: ## Run pytest
 	$(ACTIVATE) && export PYTHONPATH=. && pytest tests/
 
 docker-run: ## Build and start local containers
-	docker compose -f infra/services/docker-compose.yml up -d --build
+	docker compose -f infra/docker-compose.yml up -d --build
 	@docker ps
 
 
@@ -94,7 +94,7 @@ services-down: ## Stop ALL running containers and free RAM immediately
 deploy: ## Deploy the project to OVH VPS
 	@echo "📤 Uploading AgenticArchitect to $(DOMAIN)..."
 	rsync -avz --exclude='.git' --exclude='.venv' ./ $(USER)@$(DOMAIN):~/AgenticArchitect
-	ssh $(USER)@$(DOMAIN) "cd ~/AgenticArchitect && docker compose -f infra/services/docker-compose.yml --profile deploy up -d --build"
+	ssh $(USER)@$(DOMAIN) "cd ~/AgenticArchitect && docker compose -f infra/docker-compose.yml --profile deploy up -d --build"
 
 clean: ## Remove virtualenv and python cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
