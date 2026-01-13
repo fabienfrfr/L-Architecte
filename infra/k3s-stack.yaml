@@ -35,22 +35,15 @@ spec:
     spec:
       containers:
       - name: ollama
-        image: registry.localhost:5000/custom-ollama-gemma:latest
+        image: k3d-registry.localhost:5000/custom-ollama-gemma:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 11434
-        volumeMounts:
-        - name: data
-          mountPath: /root/.ollama
         readinessProbe:
           exec:
             command: ["ollama", "list"]
-          initialDelaySeconds: 2
+          initialDelaySeconds: 5
           periodSeconds: 5
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: ollama-data-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -120,7 +113,7 @@ spec:
     spec:
       containers:
       - name: agentic-architect
-        image: registry.localhost:5000/agentic-architect-local:latest
+        image: k3d-registry.localhost:5000/agentic-architect-local:latest
         imagePullPolicy: IfNotPresent # Required for local k3d images
         workingDir: /app
         env:
