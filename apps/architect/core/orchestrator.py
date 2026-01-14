@@ -42,21 +42,26 @@ def pm_node(state: AgentState) -> Dict[str, Any]:
         if not data.get("is_smart", False):
             logging.info(f"Requirements not SMART. Calling hypotheses generation...")
             hypotheses_res = agent.fill_gaps_with_hypotheses(data)
-            
+
             # Integration of hypotheses into the charter data
-            hyp_content = hypotheses_res.content if hasattr(hypotheses_res, "content") else hypotheses_res
+            hyp_content = (
+                hypotheses_res.content
+                if hasattr(hypotheses_res, "content")
+                else hypotheses_res
+            )
             hyp_data = json.loads(hyp_content)
             data["hypotheses"] = hyp_data.get("hypotheses", [])
 
         return {
             "charter_data": data,
-            "is_ready": True, # We force True because we now have hypotheses to proceed
+            "is_ready": True,  # We force True because we now have hypotheses to proceed
             "latest_error": None,
             "retry_count": current_retry,
         }
     except Exception as e:
         logging.error(f"Inference error on try {current_retry}: {str(e)}")
         return {"latest_error": str(e), "retry_count": current_retry + 1}
+
 
 def analyst_node(state: AgentState) -> Dict[str, Any]:
     """Analyst Agent: Performs data discovery."""
@@ -102,6 +107,8 @@ def engineer_node(state: AgentState) -> Dict[str, Any]:
 def review_node(state: AgentState) -> Dict[str, Any]:
     """Critiques the proposed solution based on 'Less is More' principle."""
     # Simplified placeholder for the review logic
+    # Put in context, say "it was a competing agent who produced result". (Mistral vs GPT)
+    # But also, say "You are an objective reviewer". (Two perspectives)
     return state
 
 
