@@ -21,6 +21,8 @@ jobs:
 
       - name: Infrastructure Status (Debug)
         run: |
+          echo "Current disk usage after deployment:"
+          df -h
           kubectl get pods -n agentic-architect -o wide
           kubectl get svc -n agentic-architect
           kubectl get events -n agentic-architect --sort-by='.lastTimestamp' | tail -n 10
