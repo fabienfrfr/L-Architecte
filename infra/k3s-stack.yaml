@@ -21,21 +21,21 @@ spec:
         app: ollama
     spec:
       containers:
-      - name: ollama
-        image: k3d-registry.localhost:5000/custom-ollama-gemma:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 11434
-        readinessProbe:
-          tcpSocket:
-            port: 11434
-          initialDelaySeconds: 15
-          periodSeconds: 10
-          failureThreshold: 5
-        resources:
-          requests:
-            memory: "2Gi" 
-            cpu: "1"    
+        - name: ollama
+          image: custom-ollama-gemma:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 11434
+          readinessProbe:
+            tcpSocket:
+              port: 11434
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 5
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
 ---
 apiVersion: v1
 kind: Service
@@ -46,9 +46,9 @@ spec:
   selector:
     app: ollama
   ports:
-  - protocol: TCP
-    port: 11434
-    targetPort: 11434
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434
 ---
 # --- 2. ARIZE PHOENIX (Observability) ---
 apiVersion: apps/v1
@@ -66,11 +66,11 @@ spec:
         app: phoenix
     spec:
       containers:
-      - name: phoenix
-        image: arizephoenix/phoenix:latest
-        ports:
-        - containerPort: 6006
-        - containerPort: 4317
+        - name: phoenix
+          image: arizephoenix/phoenix:latest
+          ports:
+            - containerPort: 6006
+            - containerPort: 4317
 ---
 apiVersion: v1
 kind: Service
@@ -81,12 +81,12 @@ spec:
   selector:
     app: phoenix
   ports:
-  - name: ui
-    port: 6006
-    targetPort: 6006
-  - name: grpc
-    port: 4317
-    targetPort: 4317
+    - name: ui
+      port: 6006
+      targetPort: 6006
+    - name: grpc
+      port: 4317
+      targetPort: 4317
 ---
 # --- 3. THE ARCHITECT (Core Application) ---
 apiVersion: apps/v1
@@ -104,26 +104,26 @@ spec:
         app: architect
     spec:
       containers:
-      - name: agentic-architect
-        image: k3d-registry.localhost:5000/agentic-architect-local:latest
-        imagePullPolicy: IfNotPresent
-        workingDir: /app
-        env:
-        - name: ENV
-          value: "test"
-        - name: OLLAMA_URL
-          value: "http://ollama:11434"
-        - name: PHOENIX_URL
-          value: "http://phoenix:6006"
-        - name: PHOENIX_COLLECTOR_ENDPOINT
-          value: "http://phoenix:4317"
-        - name: PYTHONPATH
-          value: "."
-        securityContext:
-          capabilities:
-            add: ["SYS_PTRACE"]
-        ports:
-        - containerPort: 8080
+        - name: agentic-architect
+          image: agentic-architect-local:latest
+          imagePullPolicy: Never
+          workingDir: /app
+          env:
+            - name: ENV
+              value: "test"
+            - name: OLLAMA_URL
+              value: "http://ollama:11434"
+            - name: PHOENIX_URL
+              value: "http://phoenix:6006"
+            - name: PHOENIX_COLLECTOR_ENDPOINT
+              value: "http://phoenix:4317"
+            - name: PYTHONPATH
+              value: "."
+          securityContext:
+            capabilities:
+              add: ["SYS_PTRACE"]
+          ports:
+            - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -135,9 +135,9 @@ spec:
   selector:
     app: architect
   ports:
-  - protocol: TCP
-    port: 8080
-    targetPort: 8080
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
 ---
 # --- 4. INGRESS CONTROLLER ---
 apiVersion: networking.k8s.io/v1
@@ -149,13 +149,13 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-  - host: thearchitect.dev
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: architect-service
-            port:
-              number: 8080
+    - host: thearchitect.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: architect-service
+                port:
+                  number: 8080
