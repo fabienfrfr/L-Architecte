@@ -122,7 +122,14 @@ run: ## Launch application in LOCAL mode (Host machine)
 test: ## Run pytest locally
 	$(ACTIVATE) && export PYTHONPATH=. && pytest tests/
 
-services-down: ## Stop local k3d cluster to free RAM
+
+services-down: ## Stop ALL running containers and free RAM immediately
+	@docker stop $$(docker ps -q) 2>/dev/null || true
+	@docker container prune -f
+	@docker network prune -f
+	@docker ps
+
+pods-down: ## Stop local k3d cluster to free RAM
 	k3d cluster stop $(CLUSTER_NAME)
 
 ##@ Deployment (VPS)
@@ -140,4 +147,4 @@ git-setup: ## Configure Git inside the container using .env values
 	@git config --global user.email "$$(grep GIT_USER_EMAIL .env | cut -d '=' -f2)"
 	@git config --global --add safe.directory /app
 
-.PHONY: help install run test deploy clean services-down nuke nuke-vps space git-setup fix-permissions map .env setup-dev k-up k-status k-debug k-test k-models k-nuke vps-status
+.PHONY: help install run test deploy clean services-down pods-down nuke nuke-vps space git-setup fix-permissions map .env setup-dev k-up k-status k-debug k-test k-models k-nuke vps-status
