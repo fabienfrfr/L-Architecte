@@ -147,4 +147,9 @@ git-setup: ## Configure Git inside the container using .env values
 	@git config --global user.email "$$(grep GIT_USER_EMAIL .env | cut -d '=' -f2)"
 	@git config --global --add safe.directory /app
 
-.PHONY: help install run test deploy clean services-down pods-down nuke nuke-vps space git-setup fix-permissions map .env setup-dev k-up k-status k-debug k-test k-models k-nuke vps-status
+
+
+#  Automatically collect all targets with descriptions for .PHONY
+ALL_TARGETS := $(shell grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | cut -d: -f1)
+
+.PHONY: $(ALL_TARGETS)
