@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: ollama
-          image: k3d-registry.localhost:5000/custom-ollama-gemma:latest
-          imagePullPolicy: Always # Force pull from registry
+          image: k3d-agentic-cluster-registry:5000/custom-ollama-gemma:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 11434
           readinessProbe:
@@ -105,8 +105,8 @@ spec:
     spec:
       containers:
         - name: agentic-architect
-          image: k3d-registry.localhost:5000/agentic-architect-local:latest
-          imagePullPolicy: Always # Force pull from registry
+          image: k3d-agentic-cluster-registry:5000/agentic-architect-local:latest
+          imagePullPolicy: Always
           workingDir: /app
           env:
             - name: ENV
