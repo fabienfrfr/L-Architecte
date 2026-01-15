@@ -1,8 +1,4 @@
-FROM pypy:3.11-slim-bookworm
-
-# Create symlinks for python and python3 to point to pypy3
-RUN ln -s /usr/local/bin/pypy3 /usr/local/bin/python && \
-    ln -s /usr/local/bin/pypy3 /usr/local/bin/python3
+FROM python:3.13-slim-bookworm
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -26,8 +22,8 @@ WORKDIR /app
 
 COPY apps/architect/requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies using uv
+RUN uv pip install --system --no-cache -r requirements.txt
 
 COPY . .
 
