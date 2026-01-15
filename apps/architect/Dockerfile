@@ -27,6 +27,8 @@ RUN uv pip install --system --no-cache -r requirements.txt
 
 COPY . .
 
+
+# ENV PYTHON_JIT=1
 ENV PYTHONPATH=/app
 
 CMD ["python3", "-m", "apps.architect.main"]
