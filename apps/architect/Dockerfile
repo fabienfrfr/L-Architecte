@@ -1,4 +1,8 @@
-FROM python:3.11-bookworm
+FROM pypy:3.11-slim-bookworm
+
+# Create symlinks for python and python3 to point to pypy3
+RUN ln -s /usr/local/bin/pypy3 /usr/local/bin/python && \
+    ln -s /usr/local/bin/pypy3 /usr/local/bin/python3
 
 RUN apt-get update && apt-get install -y \
     build-essential \
