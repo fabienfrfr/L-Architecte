@@ -44,6 +44,7 @@ jobs:
       - name: Wait for Pods
         run: |
           kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s
+          kubectl wait --for=condition=Ready pod -l app=phoenix -n agentic-architect --timeout=300s
           kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s
           kubectl exec -n agentic-architect deployments/ollama -- ollama list
 
