@@ -68,6 +68,11 @@ spec:
       containers:
         - name: phoenix
           image: arizephoenix/phoenix:latest
+          env:
+            - name: PHOENIX_PORT
+              value: "6006"
+            - name: PHOENIX_HOST
+              value: "0.0.0.0"
           ports:
             - containerPort: 6006
             - containerPort: 4317
