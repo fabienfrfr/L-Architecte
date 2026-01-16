@@ -51,11 +51,44 @@ help: ## Display this help message
 		echo "⚠️  .env file already exists."; \
 	fi
 
-install: .env ## Create virtualenv and install dependencies
-	$(PYTHON) -m venv $(VENV)
-	$(ACTIVATE) && $(PIP) install --upgrade pip
-	$(ACTIVATE) && $(PIP) install -r requirements.txt
-	@echo "Installation complete."
+# --- Configuration ---
+SHELL := /bin/bash
+PROJECT_NAME := agentic-architect
+
+.PHONY: help install-tools setup-infra dev clean
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+install-tools: ## Install all binary dependencies (Skaffold, K3d, Kubectl, UV)
+	@echo "Installing system tools..."
+	# K3D
+	@if ! command -v k3d &> /dev/null; then curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash; fi
+	# Kubectl
+	@if ! command -v kubectl &> /dev/null; then \
+		curl -LO "https://dl.k8s.io/release/$$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+		sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl; \
+	fi
+	# Skaffold
+	@if ! command -v skaffold &> /dev/null; then \
+		curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
+		sudo install skaffold /usr/local/bin/ && rm skaffold; \
+	fi
+	# UV (Fast Python toolchain)
+	@if ! command -v uv &> /dev/null; then curl -LsSf https://astral.sh/uv/install.sh | sh; fi
+	@echo "All tools are installed."
+
+setup-infra: install-tools ## Create the K3d cluster and registry
+	bash infra/k3d-deploy.sh --reset
+	k3d kubeconfig merge agentic-cluster --switch-context
+
+dev: ## Start the Skaffold development loop
+	@echo "Starting AgenticArchitect development loop..."
+	skaffold dev --cleanup=false
+
+clean: ## Destroy the cluster and clean local artifacts
+	k3d cluster delete agentic-cluster
+	k3d registry delete agentic-registry.localhost
 
 setup-dev: .env ## Full development environment setup
 	$(MAKE) clean
