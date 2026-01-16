@@ -61,8 +61,8 @@
         }
     },
     "forwardPorts": [8080, 6006, 4317],
-    // 1. Install Skaffold + 2. Prep Infra + 3. Setup App
-    "postCreateCommand": "curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && sudo install skaffold /usr/local/bin/ && bash infra/k3d-deploy.sh && make setup-dev",
+    // Prep Infra + Setup App
+    "postCreateCommand": "bash infra/k3d-deploy.sh && make setup-dev",
     // Auto-start development loop on every container start
     "postStartCommand": "skaffold dev --cleanup=false"
 }

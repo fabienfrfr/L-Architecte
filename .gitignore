@@ -17,6 +17,9 @@ ollama_data/
 .env
 .venv/
 
+# Dev
+skaffold
+
 
 # Python (Poetry, Pipenv, UV) --> Dont use jupyter notebooks here
 poetry.lock
