@@ -7,8 +7,6 @@
    * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
     "name": "AgenticArchitect Dev Container",
-    //"dockerComposeFile": "../infra/docker-compose.yml",
-    //"service": "architect",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "remoteUser": "vscode",
@@ -17,7 +15,7 @@
     "overrideCommand": true,
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
-        "ghcr.io/devcontainers/features/common-utils:2.5.5": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": true,
             "configureZshAsDefaultShell": true,
             "installRsync": true
@@ -36,7 +34,8 @@
         }
     },
     "mounts": [
-        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+        "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind"
     ],
     "customizations": {
         "vscode": {
@@ -44,46 +43,26 @@
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
-                "python.testing.pytestArgs": [
-                    "tests",
-                    "specs"
-                ],
-                "python.testing.pytestPath": "pytest",
+                "python.testing.pytestArgs": ["tests"],
                 "python.testing.autoTestDiscoverOnSaveEnabled": true,
-                "python.analysis.extraPaths": [
-                    "."
-                ],
-                "python.analysis.typeCheckingMode": "basic",
+                "python.analysis.extraPaths": ["."],
                 "editor.formatOnSave": true,
-                "python.formatting.provider": "black",
-                "marimo.openAsMarimo": true,
-                "marimo.run.args": [
-                    "--root",
-                    "${workspaceFolder}"
-                ],
-                "marimo.env": {
-                    "PYTHONPATH": "${workspaceFolder}"
-                }
+                "python.formatting.provider": "black"
             },
             "extensions": [
                 "ms-python.python",
-                "ms-python.debugpy",
-                "ms-python.pylint",
                 "ms-python.black-formatter",
-                "ms-toolsai.jupyter",
-                "ms-toolsai.jupyter-renderers",
-                "ms-toolsai.jupyter-keymap",
+                "googlecloudtools.cloudcode",
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "marimo-team.vscode-marimo",
                 "stateful.runme",
-                "jebbs.plantuml",
                 "bierner.markdown-mermaid"
             ]
         }
     },
-    "forwardPorts": [
-        8080,
-        6006,
-        4317
-    ],
-    "postCreateCommand": "bash infra/k3d-deploy.sh && make setup-dev"
+    "forwardPorts": [8080, 6006, 4317],
+    // 1. Install Skaffold + 2. Prep Infra + 3. Setup App
+    "postCreateCommand": "curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && sudo install skaffold /usr/local/bin/ && bash infra/k3d-deploy.sh && make setup-dev",
+    // Auto-start development loop on every container start
+    "postStartCommand": "skaffold dev --cleanup=false"
 }

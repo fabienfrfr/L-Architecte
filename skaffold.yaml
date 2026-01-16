@@ -1,0 +1,40 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: agentic-architect
+build:
+  local:
+    push: false # k3d
+  artifacts:
+    - image: k3d-agentic-cluster-registry.localhost:5000/agentic-architect-local
+      context: .
+      docker:
+        dockerfile: apps/architect/Dockerfile
+      sync:
+        manual:
+          # Synchronisation
+          - src: 'apps/architect/**/*.py'
+            dest: .
+          - src: 'apps/architect/requirements.txt'
+            dest: .
+
+manifests:
+  rawYaml:
+    - infra/k3s-stack.yaml
+
+deploy:
+  kubectl: {}
+
+portForward:
+  # NiceGUI
+  - resourceType: service
+    resourceName: architect-service
+    namespace: agentic-architect
+    port: 8080
+    localPort: 8080
+  # Observability
+  - resourceType: service
+    resourceName: phoenix
+    namespace: agentic-architect
+    port: 6006
+    localPort: 6006

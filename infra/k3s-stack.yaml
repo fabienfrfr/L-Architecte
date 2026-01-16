@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: ollama
-          image: k3d-agentic-cluster-registry.localhost:5000/custom-ollama-gemma:latest # Nom interne
-          imagePullPolicy: Always
+          image: k3d-agentic-cluster-registry.localhost:5000/custom-ollama-gemma:latest
+          imagePullPolicy: IfNotPresent # Do not pull from remote if local exists
           ports:
             - containerPort: 11434
           readinessProbe:
@@ -31,7 +31,6 @@ spec:
               port: 11434
             initialDelaySeconds: 15
             periodSeconds: 10
-            failureThreshold: 5
           resources:
             requests:
               memory: "2Gi"
@@ -82,10 +81,6 @@ spec:
               port: 6006
             initialDelaySeconds: 30
             periodSeconds: 10
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "0.5"
 ---
 apiVersion: v1
 kind: Service
@@ -120,8 +115,8 @@ spec:
     spec:
       containers:
         - name: agentic-architect
-          image: k3d-agentic-cluster-registry.localhost:5000/agentic-architect-local:latest # Nom interne
-          imagePullPolicy: Always
+          image: k3d-agentic-cluster-registry.localhost:5000/agentic-architect-local:latest
+          imagePullPolicy: IfNotPresent # Required for Skaffold local dev
           workingDir: /app
           env:
             - name: ENV
@@ -133,10 +128,7 @@ spec:
             - name: PHOENIX_COLLECTOR_ENDPOINT
               value: "http://phoenix:4317"
             - name: PYTHONPATH
-              value: "."
-          securityContext:
-            capabilities:
-              add: ["SYS_PTRACE"]
+              value: "/app"
           ports:
             - containerPort: 8080
 ---
@@ -154,7 +146,7 @@ spec:
       port: 8080
       targetPort: 8080
 ---
-# --- 4. INGRESS CONTROLLER ---
+# --- 4. INGRESS ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

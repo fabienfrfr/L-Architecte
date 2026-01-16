@@ -18,36 +18,40 @@ jobs:
 
       - name: Free Disk Space (Cleanup)
         run: |
-          echo "Disk space before cleanup:"
-          df -h
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc "/usr/local/share/boost"
           sudo docker image prune -af
-          echo "Disk space after cleanup:"
-          df -h
 
-      - name: Install K3D and Deploy
-        run: bash infra/k3d-deploy.sh
-
-      - name: Infrastructure Status (Debug)
+      - name: Install K3D
         run: |
-          echo "Current disk usage after deployment:"
-          df -h
-          kubectl get pods -n agentic-architect -o wide
-          kubectl get svc -n agentic-architect
-          kubectl get events -n agentic-architect --sort-by='.lastTimestamp' | tail -n 10
-          kubectl describe pod -l app=ollama -n agentic-architect
-          kubectl describe pod -l app=architect -n agentic-architect
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+
+      - name: Install Skaffold
+        run: |
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          sudo install skaffold /usr/local/bin/
+
+      - name: Setup Infrastructure (K3D)
+        run: bash infra/k3d-deploy.sh --reset
+
+      - name: Build and Deploy with Skaffold
+        # run once: build images and deploy to the cluster
+        run: skaffold run --tag-strategy=sha256
 
       - name: Wait for Pods
         run: |
           kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s
-          kubectl wait --for=condition=Ready pod -l app=phoenix -n agentic-architect --timeout=300s
           kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s
+          # Verify Ollama is ready for AgenticArchitect
           kubectl exec -n agentic-architect deployments/ollama -- ollama list
 
       - name: Run Pytest
+        # We run the tests inside the pod to ensure environment parity
         run: |
           kubectl exec -n agentic-architect deployments/architect -- pytest tests/
+
+      - name: Debug on Failure
+        if: failure()
+        run: |
+          kubectl get pods -n agentic-architect
+          kubectl logs -n agentic-architect -l app=architect --tail=100
+          kubectl describe pod -l app=architect -n agentic-architect
