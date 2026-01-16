@@ -10,7 +10,7 @@
     //"dockerComposeFile": "../infra/docker-compose.yml",
     //"service": "architect",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
-    "workspaceFolder": "/app",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "remoteUser": "vscode",
     "containerUser": "vscode",
     "updateRemoteUserUID": true,
@@ -30,6 +30,8 @@
         },
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "version": "latest",
+            "moby": false,
+            "installDockerBuildx": true,
             "enableNonRootDocker": true
         }
     },

@@ -57,9 +57,7 @@ This project uses a containerized architecture managed by Docker Compose. The in
 
 ### 📋 Prerequisites
 
-* **Docker** and **Docker Compose** installed.
-* **Ollama** running on your host or via the provided container.
-
+* Only **Python**, **Docker** and **Kubectl** installed.
 
 ### 🛠️ One-Command Setup
 
