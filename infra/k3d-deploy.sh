@@ -4,7 +4,7 @@ set -e
 # --- Configuration ---
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLUSTER_NAME="agentic-cluster"
-REGISTRY_NAME="k3d-$CLUSTER_NAME-registry.localhost"
+REGISTRY_NAME="$CLUSTER_NAME-registry"
 REGISTRY_PORT="5000"
 
 # --- Arguments parsing ---
@@ -36,6 +36,7 @@ if ! k3d cluster get "$CLUSTER_NAME" >/dev/null 2>&1; then
             --registry-use "$REGISTRY_NAME:$REGISTRY_PORT" \
             -p "80:80@loadbalancer" \
             -p "443:443@loadbalancer" \
+            --k3s-arg "--tls-san=host.docker.internal@server:0" \
             --wait
         
         # Local DNS for Ingress
@@ -47,6 +48,7 @@ if ! k3d cluster get "$CLUSTER_NAME" >/dev/null 2>&1; then
         k3d cluster create "$CLUSTER_NAME" \
             --registry-use "$REGISTRY_NAME:$REGISTRY_PORT" \
             --k3s-arg "--disable=traefik@server:0" \
+            --k3s-arg "--tls-san=host.docker.internal@server:0" \
             --wait
     fi
 fi

@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: ollama
-          image: k3d-agentic-cluster-registry.localhost:5000/custom-ollama-gemma:latest
+          image: k3d-agentic-cluster-registry:5000/custom-ollama-gemma
           imagePullPolicy: IfNotPresent # Do not pull from remote if local exists
           ports:
             - containerPort: 11434
@@ -115,7 +115,7 @@ spec:
     spec:
       containers:
         - name: agentic-architect
-          image: k3d-agentic-cluster-registry.localhost:5000/agentic-architect-local:latest
+          image: k3d-agentic-cluster-registry:5000/agentic-architect-local
           imagePullPolicy: IfNotPresent # Required for Skaffold local dev
           workingDir: /app
           env:

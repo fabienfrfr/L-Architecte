@@ -92,10 +92,8 @@ dev: ## Start the Skaffold development loop
 
 setup-dev: .env ## Full development environment setup
 	$(MAKE) clean
-	$(PIP) install -r apps/architect/requirements.txt
 	$(MAKE) git-setup
-	$(PYTHON) -m pytest --collect-only
-	@echo "🚀 AgenticArchitect is ready!"
+	@echo "🚀 AgenticArchitect is setup!"
 
 ##@ Mapping
 map: ## Export project structure to JSON

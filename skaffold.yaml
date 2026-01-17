@@ -4,19 +4,23 @@ metadata:
   name: agentic-architect
 build:
   local:
-    push: false # k3d
+    push: true # ?
   artifacts:
-    - image: k3d-agentic-cluster-registry.localhost:5000/agentic-architect-local
+    - image: k3d-agentic-cluster-registry:5000/agentic-architect-local
       context: .
       docker:
         dockerfile: apps/architect/Dockerfile
       sync:
         manual:
           # Synchronisation
-          - src: 'apps/architect/**/*.py'
+          - src: "apps/architect/**/*.py"
             dest: .
-          - src: 'apps/architect/requirements.txt'
+          - src: "apps/architect/requirements.txt"
             dest: .
+    - image: k3d-agentic-cluster-registry:5000/custom-ollama-gemma
+      context: .
+      docker:
+        dockerfile: infra/Ollama.Dockerfile
 
 manifests:
   rawYaml:
@@ -38,3 +42,8 @@ portForward:
     namespace: agentic-architect
     port: 6006
     localPort: 6006
+  # Remote dev
+  - resourceType: pod # tunnel
+    resourceName: architect
+    port: 2718
+    localPort: 2718
