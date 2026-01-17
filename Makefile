@@ -58,7 +58,7 @@ PROJECT_NAME := agentic-architect
 
 install-tools: ## Install all binary dependencies (Skaffold, K3d, Kubectl, UV)
 	@echo "Installing system tools..."
-	# K3D
+	# k3d
 	@if ! command -v k3d &> /dev/null; then curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash; fi
 	# Kubectl
 	@if ! command -v kubectl &> /dev/null; then \
