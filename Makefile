@@ -71,7 +71,14 @@ install-tools: ## Install all binary dependencies (Skaffold, K3d, Kubectl, UV)
 		sudo install skaffold /usr/local/bin/ && rm skaffold; \
 	fi
 	# UV (Fast Python toolchain)
-	@if ! command -v uv &> /dev/null; then curl -LsSf https://astral.sh/uv/install.sh | sh; fi
+	@if ! command -v uv &> /dev/null; then \
+		echo "Downloading and installing UV manually..."; \
+		curl -L https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz -o uv.tar.gz && \
+		tar -xzf uv.tar.gz && \
+		sudo install -m 0755 ./uv-x86_64-unknown-linux-gnu/uv /usr/local/bin/uv && \
+		sudo install -m 0755 ./uv-x86_64-unknown-linux-gnu/uvx /usr/local/bin/uvx && \
+		rm -rf uv.tar.gz ./uv-x86_64-unknown-linux-gnu; \
+	fi
 	@echo "All tools are installed."
 
 setup-infra: install-tools ## Create the K3d cluster and registry
@@ -173,6 +180,11 @@ git-setup: ## Configure Git inside the container using .env values
 	@git config --global user.email "$$(grep GIT_USER_EMAIL .env | cut -d '=' -f2)"
 	@git config --global --add safe.directory /app
 
+
+clean-snap-pollution:
+	@echo "Clean Snap... Only for Ubuntu!"
+	@ls -la ~/snap/code/current/.local/bin/
+	@rm -rf ~/snap/code/current/.local/bin/*
 
 
 #  Automatically collect all targets with descriptions for .PHONY
