@@ -64,5 +64,8 @@
     // Prep Infra + Setup App
     "postCreateCommand": "bash infra/k3d-deploy.sh && make setup-dev",
     // Auto-start development loop on every container start
-    "postStartCommand": "skaffold dev --cleanup=false"
+    "postStartCommand": "skaffold dev --cleanup=false",
+    "containerEnv": {
+    "EDITOR": "micro"
+  }
 }
