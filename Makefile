@@ -55,10 +55,6 @@ help: ## Display this help message
 SHELL := /bin/bash
 PROJECT_NAME := agentic-architect
 
-.PHONY: help install-tools setup-infra dev clean
-
-help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 install-tools: ## Install all binary dependencies (Skaffold, K3d, Kubectl, UV)
 	@echo "Installing system tools..."
@@ -86,9 +82,6 @@ dev: ## Start the Skaffold development loop
 	@echo "Starting AgenticArchitect development loop..."
 	skaffold dev --cleanup=false
 
-clean: ## Destroy the cluster and clean local artifacts
-	k3d cluster delete agentic-cluster
-	k3d registry delete agentic-registry.localhost
 
 setup-dev: .env ## Full development environment setup
 	$(MAKE) clean
