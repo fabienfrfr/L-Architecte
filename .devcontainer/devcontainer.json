@@ -7,7 +7,10 @@
    * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
     "name": "AgenticArchitect Dev Container",
-    "image": "mcr.microsoft.com/devcontainers/python:3.11",
+    "build": {
+        "dockerfile": "../apps/architect/Dockerfile",
+        "context": ".."
+    },
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "remoteUser": "vscode",
     "containerUser": "vscode",
@@ -40,6 +43,9 @@
     "customizations": {
         "vscode": {
             "settings": {
+                "workbench.editorAssociations": {
+                    "*.md": "default"
+                },
                 "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
@@ -75,7 +81,8 @@
                 "stateful.runme",
                 "jebbs.plantuml",
                 "bierner.markdown-mermaid",
-                "ms-kubernetes-tools.vscode-kubernetes-tools"
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "eamodio.gitlens"
             ]
         }
     },
@@ -85,7 +92,7 @@
         4317
     ],
     // Prep Infra + Setup App
-    "postCreateCommand": "bash infra/k3d-deploy.sh && make setup-dev",
+    "postCreateCommand": "make install-tools && bash infra/k3d-deploy.sh && make setup-dev",
     // Auto-start development loop on every container start
     "postStartCommand": "skaffold dev --cleanup=false",
     "containerEnv": {
