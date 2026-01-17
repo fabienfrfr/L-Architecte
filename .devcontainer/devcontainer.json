@@ -35,37 +35,60 @@
     },
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-        "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind"
+        "source=agentic-kube-config,target=/home/vscode/.kube,type=volume"
     ],
     "customizations": {
         "vscode": {
             "settings": {
-                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
-                "python.testing.pytestArgs": ["tests"],
+                "python.testing.pytestArgs": [
+                    "tests"
+                ],
+                "python.testing.pytestPath": "pytest",
                 "python.testing.autoTestDiscoverOnSaveEnabled": true,
-                "python.analysis.extraPaths": ["."],
+                "python.analysis.extraPaths": [
+                    "."
+                ],
+                "python.analysis.typeCheckingMode": "basic",
                 "editor.formatOnSave": true,
-                "python.formatting.provider": "black"
+                "python.formatting.provider": "black",
+                "marimo.openAsMarimo": true,
+                "marimo.run.args": [
+                    "--root",
+                    "${workspaceFolder}"
+                ],
+                "marimo.env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
             },
             "extensions": [
                 "ms-python.python",
+                "ms-python.debugpy",
+                "ms-python.pylint",
                 "ms-python.black-formatter",
-                "googlecloudtools.cloudcode",
-                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.jupyter-renderers",
+                "ms-toolsai.jupyter-keymap",
                 "marimo-team.vscode-marimo",
                 "stateful.runme",
-                "bierner.markdown-mermaid"
+                "jebbs.plantuml",
+                "bierner.markdown-mermaid",
+                "ms-kubernetes-tools.vscode-kubernetes-tools"
             ]
         }
     },
-    "forwardPorts": [8080, 6006, 4317],
+    "forwardPorts": [
+        8080,
+        6006,
+        4317
+    ],
     // Prep Infra + Setup App
     "postCreateCommand": "bash infra/k3d-deploy.sh && make setup-dev",
     // Auto-start development loop on every container start
     "postStartCommand": "skaffold dev --cleanup=false",
     "containerEnv": {
-    "EDITOR": "micro"
-  }
+        "EDITOR": "micro"
+    }
 }
