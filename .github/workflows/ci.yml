@@ -23,7 +23,7 @@ jobs:
 
       - name: Install Tools
         run: |
-          make install-tools
+          make install
       
       - name: Setup "Local" Infrastructure (K3D)
         run: bash scripts/setup-k3d-cluster.sh --reset

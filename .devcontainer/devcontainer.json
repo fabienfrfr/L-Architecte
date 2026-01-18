@@ -7,7 +7,7 @@
    */
     "name": "TheArchitect Control Plane",
     "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
-    // "initializeCommand": "./infra/setup-k3d-cluster.sh", // k3d doit etre lancé en dehors de devcontainer, (mais aussi skaffold ?)
+    "initializeCommand": "make k-cluster",
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
         "ghcr.io/devcontainers/features/common-utils:2": {
@@ -26,36 +26,49 @@
             "version": "latest"
         }
     },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-python.python",
-                "ms-python.debugpy",
-                "ms-python.pylint",
-                "ms-python.black-formatter",
-                "ms-toolsai.jupyter",
-                "ms-toolsai.jupyter-renderers",
-                "ms-toolsai.jupyter-keymap",
-                "eamodio.gitlens",
-                "marimo-team.vscode-marimo",
-                "stateful.runme",
-                "jebbs.plantuml",
-                "bierner.markdown-mermaid",
-                "ms-kubernetes-tools.vscode-kubernetes-tools",
-                "ms-azuretools.vscode-docker"
-            ],
-            "settings": {
-                "python.defaultInterpreterPath": "/usr/bin/python3",
-                "python.testing.pytestEnabled": true
-            }
-        }
-    },
     "mounts": [
         "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind"
     ],
-    "forwardPorts": [8080, 6006, 2718],
-    // ajouter l'installation de skaffold, (mais aussi lancer le "dev" et automatiser l'attach avec kubernetes pour les tests ?)
-    //"postCreateCommand": "curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && sudo install skaffold /usr/local/bin/ && sudo chown -R vscode:vscode /home/vscode/.kube",
-    //"postStartCommand": "skaffold dev --port-forward & ./scripts/bridge.sh &",
+    "forwardPorts": [8080, 6006, 2718, 11434],
+    "postCreateCommand": "make install && sudo chown -R vscode:vscode /home/vscode/.kube",
+    "postStartCommand": "make setup-dev && (skaffold dev --port-forward &)",
+    "customizations": {
+    "vscode": {
+        "extensions": [
+            // --- Core Python & Quality ---
+            "ms-python.python",
+            "ms-python.debugpy",
+            "charliermarsh.ruff", // pylint, black, isort
+            
+            // --- AI & Data Science ---
+            "ms-toolsai.jupyter",
+            "ms-toolsai.jupyter-renderers",
+            "marimo-team.vscode-marimo", 
+            
+            // --- Infrastructure & DevOps ---
+            "ms-kubernetes-tools.vscode-kubernetes-tools",
+            "ms-azuretools.vscode-docker",
+            "stateful.runme",
+            
+            // --- Architecture & Docs ---
+            "eamodio.gitlens",
+            "jebbs.plantuml",
+            "bierner.markdown-mermaid"
+        ],
+        "settings": {
+            "python.defaultInterpreterPath": "/usr/bin/python3",
+            "python.testing.pytestEnabled": true,
+            
+            "[python]": {
+                "editor.defaultFormatter": "charliermarsh.ruff",
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.fixAll.ruff": "explicit",
+                    "source.organizeImports.ruff": "explicit"
+                }
+            }
+        }
+    }
+},
     "remoteUser": "vscode"
 }
