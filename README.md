@@ -3,7 +3,7 @@
 [![Codeberg](https://img.shields.io/badge/Codeberg-2185d0?style=for-the-badge&logo=gitea&logoColor=white)](https://codeberg.org/fabienfrfr/AgenticArchitect)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fabienfrfr/AgenticArchitect)
 
-> ⚠️ **Work in Progress:** We are currently migrating our orchestration layer from `docker-compose` to **K3s/K3d**. 🚜🚧
+> 🚀 **K8s Native & Editor Agnostic:** A fully orchestrated **K3s/K3d** environment. No manual configuration, no complex IDE dependencies. One command to rule them all.
 
 **AgenticArchitect** (or **TheArchitect**) is a local-first multi-agent system designed to transform raw client specifications into production-ready AI and Data solutions.
 
@@ -51,37 +51,49 @@ Other relevant resources:
 - [Elicit – AI research assistant for literature review and scientific workflows](https://elicit.org/)
 - [Claude – Agents Inspirations](https://github.com/VoltAgent/awesome-claude-code-subagents)
 
-## 🚀 Local Deployment
+## ⚡ Zero-Touch Startup (CLI-only)
 
-This project uses a containerized architecture managed by Docker Compose. The infrastructure includes **Traefik** (reverse proxy), **Arize Phoenix** (observability), **Ollama** (LLM engine), and the **AgenticArchitect** application.
-
-### 📋 Prerequisites
-
-* Only **Python**, **Docker** and **Kubectl** installed.
-
-### 🛠️ One-Command Setup
-
+Designed for speed. This workflow installs the tools, builds the cluster, and launches the agents in one go.
 
 ```bash
-# Navigate to the project root
-cd ~/AgenticArchitect
+git clone https://github.com/fabienfrfr/AgenticArchitect
+cd AgenticArchitect
 
-# Start services using the deployment profile
-docker compose -f infra/docker-compose.yml up -d --build
+# The 'Golden Path' to a ready-to-code environment:
+make install && make k-cluster && make setup-dev && skaffold dev
 
 ```
 
-### 🔍 Service Access
+### What happens under the hood?
 
-| Service |  Local/Internal URL |
-| --- | --- | 
-| **TheArchitect UI** | `http://localhost:8080` |
-| **Arize Phoenix** | `http://localhost:6006` |
-| **Ollama API** | `http://localhost:11434` |
+1. **`make install`**: Automatically detects your OS and installs `uv`, `k3d`, `kubectl`, and `skaffold`.
+2. **`make k-cluster`**: Provisions a local K3d cluster with optimized port-forwarding.
+3. **`make setup-dev`**: Uses **UV** to sync Python dependencies and pre-pulls **Gemma 2:270M** into the cluster.
+4. **`skaffold dev`**: Starts continuous hot-reload. Any file change is instantly reflected in the running pods.
+
+## 🛠️ The Power Tools
+
+| Tool | Role | Why it's here |
+| --- | --- | --- |
+| **K3d / K3s** | Orchestration | Industrial scale for local agents. |
+| **Skaffold** | Deployment | Zero-wait development loop. |
+| **UV** | Python Manager | 10x faster than pip/poetry. |
+| **Ollama** | LLM Engine | Total data sovereignty with **Gemma 2:270M**. |
+| **Ruff** | Code Quality | Blazing fast SOLID enforcement. |
+
+## 🔍 Service Access
+
+Once the stack is up, all services are mapped to your localhost:
+
+| Service | Local URL | Description |
+| --- | --- | --- |
+| **TheArchitect UI** | `http://localhost:8080` | NiceGUI Control Panel |
+| **Arize Phoenix** | `http://localhost:6006` | Traces & Observability |
+| **Ollama API** | `http://localhost:11434` | Local Inference Engine |
 
 
 ## 📜 License
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
 
-Copyright (c) 2025 **Fabien Furfaro** - Full license text available in the [LICENSE](./LICENSE) file with is notice in the [NOTICE](./NOTICE) file.
+Copyright (c) 2026 **Fabien Furfaro** - Full license text available in the [LICENSE](./LICENSE) file with is notice in the [NOTICE](./NOTICE) file.
