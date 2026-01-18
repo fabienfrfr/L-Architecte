@@ -25,8 +25,8 @@ jobs:
         run: |
           make install-tools
       
-      - name: Setup Infrastructure (K3D)
-        run: bash infra/k3d-deploy.sh --reset
+      - name: Setup "Local" Infrastructure (K3D)
+        run: bash infra/setup-k3d-cluster.sh --reset
 
       - name: Build and Deploy with Skaffold
         # run once: build images and deploy to the cluster
