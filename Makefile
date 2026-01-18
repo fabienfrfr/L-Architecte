@@ -81,13 +81,6 @@ install-tools: ## Install all binary dependencies (Skaffold, K3d, Kubectl, UV)
 	fi
 	@echo "All tools are installed."
 
-setup-infra: install-tools ## Create the K3d cluster and registry
-	bash infra/k3d-deploy.sh --reset
-	k3d kubeconfig merge agentic-cluster --switch-context
-
-dev: ## Start the Skaffold development loop
-	@echo "Starting AgenticArchitect development loop..."
-	skaffold dev --cleanup=false
 
 
 setup-dev: .env ## Full development environment setup
@@ -97,11 +90,9 @@ setup-dev: .env ## Full development environment setup
 
 ##@ Mapping
 map: ## Export project structure to JSON
-	$(PYTHON) $(SCRIPT_MAPPER) --to-json
+	uv run python3 libs/code_mapper.py --to-json
 
 ##@ Kubernetes (Local k3d)
-k-up: ## Deploy infrastructure to k3d cluster (Build + Deploy)
-	bash infra/k3d-deploy.sh
 
 k-status: ## Show all pods, services and nodes in the namespace
 	@echo "📊 Cluster Status:"
@@ -116,13 +107,6 @@ k-debug: ## Detailed debug of the pods (events + description)
 k-test: ## Run pytest INSIDE the architect pod in k3d
 	kubectl exec -n $(NAMESPACE) deployments/architect -- pytest tests/
 
-k-models: ## List models available in the k3d ollama instance
-	kubectl exec -n $(NAMESPACE) deployments/ollama -- ollama list
-
-k-nuke: ## WARNING: Completely destroy the k3d cluster and registry
-	@echo "🔥 Destroying K3d Infrastructure..."
-	k3d cluster delete $(CLUSTER_NAME) || true
-	k3d registry delete k3d-registry.localhost || true
 
 ##@ Storage & Cleanup
 space: ## Show docker disk usage
@@ -131,10 +115,6 @@ space: ## Show docker disk usage
 nuke: ## WARNING: Completely wipe ALL local docker data
 	@echo "⚠️  Wiping Docker..."
 	docker system prune -a --volumes -f
-
-nuke-vps: ## WARNING: Completely wipe ALL K8s resources on VPS
-	@echo "⚠️  Wiping VPS Namespace..."
-	ssh $(USER)@$(DOMAIN) "kubectl delete namespace $(NAMESPACE) || true"
 
 clean: ## Remove virtualenv and python cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -153,17 +133,18 @@ run: ## Launch application in LOCAL mode (Host machine)
 test: ## Run pytest locally
 	$(ACTIVATE) && export PYTHONPATH=. && pytest tests/
 
-
 services-down: ## Stop ALL running containers and free RAM immediately
 	@docker stop $$(docker ps -q) 2>/dev/null || true
 	@docker container prune -f
 	@docker network prune -f
 	@docker ps
 
-pods-down: ## Stop local k3d cluster to free RAM
-	k3d cluster stop $(CLUSTER_NAME)
-
 ##@ Deployment (VPS)
+setup-vps: ## Install K3s and basic tools on the VPS
+	ssh $(USER)@$(DOMAIN) "curl -sfL https://get.k3s.io | sh - && \
+	sudo chmod 644 /etc/rancher/k3s/k3s.yaml && \
+	sudo apt-get update && sudo apt-get install -y rsync"
+	
 deploy: ## Deploy the project to OVH VPS using K3s
 	@echo "📤 Uploading AgenticArchitect to $(DOMAIN)..."
 	rsync -avz --exclude='.git' --exclude='.venv' ./ $(USER)@$(DOMAIN):~/AgenticArchitect
