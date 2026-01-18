@@ -18,7 +18,7 @@ help: ## Display this help message
 
 ##@ Setup & Installation
 install: ## Install system binaries (Skaffold, Kubectl, UV) via script
-	@bash scripts/install.sh $$( [ -f /.dockerenv ] && echo "devcontainer" || echo "local" )
+	@bash scripts/install-tools.sh $$( [ -f /.dockerenv ] && echo "devcontainer" || echo "local" )
 
 setup-dev: .env ## Sync dependencies and prepare project
 	uv sync
