@@ -1,21 +1,12 @@
 {
     /*
    * Prerequisites:
-   * 1. Docker and Docker Compose must be installed on your system.
+   * 1. Docker must be installed on your system.
    * 2. VSCode with the "Remote - Containers" extension installed.
    * 3. (re)Build with Ctrl+Shift+P > Remote-Containers: Rebuild Container
-   * 4. Ensure the `architect` service in docker-compose.yml has Python and all dependencies installed.
    */
-    "name": "AgenticArchitect Dev Container",
+    "name": "TheArchitect Control Plane",
     "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
-    "runArgs": [
-        "--add-host=host.docker.internal:host-gateway"
-    ],
-    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-    "remoteUser": "vscode",
-    "containerUser": "vscode",
-    "updateRemoteUserUID": true,
-    "overrideCommand": true,
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
         "ghcr.io/devcontainers/features/common-utils:2": {
@@ -26,49 +17,16 @@
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
         },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "moby": false,
+            "installDockerBuildx": true
+        },
         "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
             "version": "latest"
-        },
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-            "version": "latest",
-            "moby": false,
-            "installDockerBuildx": true,
-            "enableNonRootDocker": true
         }
     },
-    "mounts": [
-        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-        "source=agentic-kube-config,target=/home/vscode/.kube,type=volume"
-    ],
     "customizations": {
         "vscode": {
-            "settings": {
-                "workbench.editorAssociations": {
-                    "*.md": "default"
-                },
-                "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-                "python.testing.pytestEnabled": true,
-                "python.testing.unittestEnabled": false,
-                "python.testing.pytestArgs": [
-                    "tests"
-                ],
-                "python.testing.pytestPath": "pytest",
-                "python.testing.autoTestDiscoverOnSaveEnabled": true,
-                "python.analysis.extraPaths": [
-                    "."
-                ],
-                "python.analysis.typeCheckingMode": "basic",
-                "editor.formatOnSave": true,
-                "python.formatting.provider": "black",
-                "marimo.openAsMarimo": true,
-                "marimo.run.args": [
-                    "--root",
-                    "${workspaceFolder}"
-                ],
-                "marimo.env": {
-                    "PYTHONPATH": "${workspaceFolder}"
-                }
-            },
             "extensions": [
                 "ms-python.python",
                 "ms-python.debugpy",
@@ -77,25 +35,22 @@
                 "ms-toolsai.jupyter",
                 "ms-toolsai.jupyter-renderers",
                 "ms-toolsai.jupyter-keymap",
-                //"eamodio.gitlens",
+                "eamodio.gitlens",
                 "marimo-team.vscode-marimo",
                 "stateful.runme",
                 "jebbs.plantuml",
                 "bierner.markdown-mermaid",
-                "ms-kubernetes-tools.vscode-kubernetes-tools"
-            ]
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/bin/python3",
+                "python.testing.pytestEnabled": true
+            }
         }
     },
-    "forwardPorts": [
-        8080,
-        6006,
-        4317
+    "mounts": [
+        "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind"
     ],
-    // Prep Infra + Setup App
-    "postCreateCommand": "sudo mkdir -p /home/vscode/.kube && sudo chown -R vscode:vscode /home/vscode/.kube && make install-tools && bash infra/k3d-deploy.sh && k3d kubeconfig get agentic-cluster > /home/vscode/.kube/config && sed -i 's/0.0.0.0/host.docker.internal/g' /home/vscode/.kube/config", // Auto-start development loop on every container start
-    "postStartCommand": "GODEBUG=netdns=go skaffold dev --kubeconfig /home/vscode/.kube/config --insecure-registry=host.docker.internal:5000 --port-forward --cleanup=false",
-    "containerEnv": {
-        "EDITOR": "micro",
-        "KUBECONFIG": "/home/vscode/.kube/config"
-    }
+    "remoteUser": "vscode"
 }

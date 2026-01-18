@@ -120,7 +120,7 @@ spec:
     spec:
       containers:
         - name: agentic-architect
-          image: agentic-architect-local
+          image: agentic-architect
           imagePullPolicy: IfNotPresent
           workingDir: /app
           env:

@@ -6,7 +6,7 @@ build:
   local:
     push: false
   artifacts:
-    - image: agentic-architect-local
+    - image: agentic-architect
       context: .
       docker:
         dockerfile: apps/architect/Dockerfile
@@ -27,8 +27,20 @@ deploy:
   kubectl: {}
 
 portForward:
+  # NiceGUI
   - resourceType: service
     resourceName: architect-service
     namespace: agentic-architect
     port: 8080
     localPort: 8080
+  # Observability
+  - resourceType: service
+    resourceName: phoenix
+    namespace: agentic-architect
+    port: 6006
+    localPort: 6006
+  # Remote dev (Interactive)
+  - resourceType: service
+    resourceName: architect
+    port: 2718
+    localPort: 2718
