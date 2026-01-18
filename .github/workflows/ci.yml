@@ -30,7 +30,7 @@ jobs:
 
       - name: Build and Deploy with Skaffold
         # run once: build images and deploy to the cluster
-        run: skaffold run --default-repo=k3d-agentic-cluster-registry.localhost:5000
+        run: skaffold run --push=false
 
       - name: Wait for Pods
         run: |

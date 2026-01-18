@@ -1,10 +1,12 @@
-# --- Infrastructure Namespace ---
+# ==============================================================================
+# Kubernetes Manifests for AgenticArchitect Stack
+# ==============================================================================
 apiVersion: v1
 kind: Namespace
 metadata:
   name: agentic-architect
 ---
-# --- 1. OLLAMA SERVICE (The AI Engine) ---
+# --- 1. OLLAMA SERVICE ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,15 +24,14 @@ spec:
     spec:
       containers:
         - name: ollama
-          image: k3d-agentic-cluster-registry:5000/custom-ollama-gemma
-          imagePullPolicy: IfNotPresent # Do not pull from remote if local exists
+          image: custom-ollama-gemma
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 11434
           readinessProbe:
             tcpSocket:
               port: 11434
             initialDelaySeconds: 15
-            periodSeconds: 10
           resources:
             requests:
               memory: "2Gi"
@@ -49,7 +50,7 @@ spec:
       port: 11434
       targetPort: 11434
 ---
-# --- 2. ARIZE PHOENIX (Observability) ---
+# --- 2. ARIZE PHOENIX ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,13 +75,6 @@ spec:
               value: "0.0.0.0"
           ports:
             - containerPort: 6006
-            - containerPort: 4317
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 6006
-            initialDelaySeconds: 30
-            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -94,11 +88,8 @@ spec:
     - name: ui
       port: 6006
       targetPort: 6006
-    - name: grpc
-      port: 4317
-      targetPort: 4317
 ---
-# --- 3. THE ARCHITECT (Core Application) ---
+# --- 3. THE ARCHITECT ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -115,8 +106,8 @@ spec:
     spec:
       containers:
         - name: agentic-architect
-          image: k3d-agentic-cluster-registry:5000/agentic-architect-local
-          imagePullPolicy: IfNotPresent # Required for Skaffold local dev
+          image: agentic-architect-local
+          imagePullPolicy: IfNotPresent
           workingDir: /app
           env:
             - name: ENV
@@ -125,10 +116,11 @@ spec:
               value: "http://ollama:11434"
             - name: PHOENIX_URL
               value: "http://phoenix:6006"
-            - name: PHOENIX_COLLECTOR_ENDPOINT
-              value: "http://phoenix:4317"
             - name: PYTHONPATH
               value: "/app"
+          securityContext:
+            capabilities:
+              add: ["SYS_PTRACE"]
           ports:
             - containerPort: 8080
 ---
@@ -138,31 +130,9 @@ metadata:
   name: architect-service
   namespace: agentic-architect
 spec:
-  type: ClusterIP
   selector:
     app: architect
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
----
-# --- 4. INGRESS ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: architect-ingress
-  namespace: agentic-architect
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
-spec:
-  rules:
-    - host: thearchitect.dev
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: architect-service
-                port:
-                  number: 8080
