@@ -7,6 +7,7 @@
    */
     "name": "TheArchitect Control Plane",
     "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
+    // "initializeCommand": "./infra/setup-k3d-cluster.sh", // k3d doit etre lancé en dehors de devcontainer, (mais aussi skaffold ?)
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
         "ghcr.io/devcontainers/features/common-utils:2": {
@@ -52,5 +53,9 @@
     "mounts": [
         "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind"
     ],
+    "forwardPorts": [8080, 6006, 2718],
+    // ajouter l'installation de skaffold, (mais aussi lancer le "dev" et automatiser l'attach avec kubernetes pour les tests ?)
+    //"postCreateCommand": "curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && sudo install skaffold /usr/local/bin/ && sudo chown -R vscode:vscode /home/vscode/.kube",
+    //"postStartCommand": "skaffold dev --port-forward & ./scripts/bridge.sh &",
     "remoteUser": "vscode"
 }
