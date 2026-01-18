@@ -30,7 +30,7 @@ jobs:
 
       - name: Build and Deploy with Skaffold
         # run once: build images and deploy to the cluster
-        run: skaffold run --push=false
+        run: skaffold run
 
       - name: Wait for Pods
         run: |
