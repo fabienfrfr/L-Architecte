@@ -32,6 +32,15 @@ install_uv() {
     fi
 }
 
+install_k3d() {
+    if ! command -v k3d &> /dev/null; then
+        log_info "Installing k3d (Local Cluster Provider)..."
+        curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+    else
+        log_info "k3d is already installed."
+    fi
+}
+
 install_k8s_tools() {
     log_info "Installing Kubernetes CLI tools (Skaffold & Kubectl)..."
     # Skaffold
@@ -68,6 +77,7 @@ case "$1" in
     local)
         log_info "Starting FULL LOCAL installation..."
         install_uv
+        install_k3d
         install_k8s_tools
         log_success "Local environment ready."
         ;;

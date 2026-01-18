@@ -19,7 +19,7 @@ ollama_data/
 
 # Dev
 skaffold
-temp.md
+temp
 versions/*/
 
 # Python (Poetry, Pipenv, UV) --> Dont use jupyter notebooks here
