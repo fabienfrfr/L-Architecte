@@ -1,4 +1,8 @@
 {
+    /*
+   * Prerequisites:
+   * VSCodim with the "3timeslazy.vscodium-devpodcontainers" & "jeanp413.open-remote-ssh" extension installed.
+   */
     "name": "TheArchitect Control Plane",
     "image": "jetpackio/devbox:latest",
     "initializeCommand": "make k-cluster",
@@ -16,6 +20,9 @@
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "moby": false,
             "installDockerBuildx": true
+        },
+        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+            "version": "latest"
         }
     },
     "mounts": [
@@ -41,7 +48,6 @@
             "ms-kubernetes-tools.vscode-kubernetes-tools",
             "ms-azuretools.vscode-docker",
             "stateful.runme",
-            "jeanp413.open-remote-ssh",
             
             // --- Architecture & Docs ---
             "eamodio.gitlens",
