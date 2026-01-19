@@ -2,6 +2,7 @@
     /*
    * Prerequisites:
    * VSCodim with the "3timeslazy.vscodium-devpodcontainers" & "jeanp413.open-remote-ssh" extension installed.
+   * NEED Force "enable-proposed-api" in micro ~/.vscode-oss/argv.json (Open a remote window access)
    */
     "name": "TheArchitect Control Plane",
     "image": "jetpackio/devbox:latest",
