@@ -1,0 +1,20 @@
+{
+  "packages": [
+    "python@3.13",
+    "ruff",
+    "kubectl",
+    "kubernetes-helm",
+    "skaffold",
+    "openjdk@17",
+    "ollama",
+    "git",
+    "rsync",
+    "gnumake" 
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'TheArchitect Initialization..'",
+      "make install"
+    ]
+  }
+}

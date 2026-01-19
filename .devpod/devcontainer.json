@@ -6,7 +6,7 @@
    * 3. (re)Build with Ctrl+Shift+P > Remote-Containers: Rebuild Container
    */
     "name": "TheArchitect Control Plane",
-    "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
+    "image": "jetpackio/devbox:latest",
     "initializeCommand": "make k-cluster",
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
