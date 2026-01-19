@@ -18,6 +18,7 @@
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17"
         },
+        // DooD for k3d (if K3s, use DinD)
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "moby": false,
             "installDockerBuildx": true
@@ -33,7 +34,7 @@
     "postCreateCommand": "make install && sudo chown -R vscode:vscode /home/vscode/.kube",
     "postStartCommand": "make setup-dev && (skaffold dev --port-forward &)",
     "customizations": {
-    "vscode": {
+    "vscodium": {
         "extensions": [
             // --- Core Python & Quality ---
             "ms-python.python",
