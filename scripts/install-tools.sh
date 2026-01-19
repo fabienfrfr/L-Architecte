@@ -61,6 +61,30 @@ install_k8s_tools() {
     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl
 }
 
+
+install_devbox() {
+    if ! command -v devbox &> /dev/null; then
+        log_info "Installing Devbox (Nix-based environments)..."
+        if ! command -v nix &> /dev/null; then
+            log_info "Nix not found. Installing Nix multi-user..."
+            curl -L https://nixos.org/nix/install | sh -s -- --daemon
+        fi
+        curl -fsSL https://get.jetpack.io/devbox | bash
+    else
+        log_info "Devbox is already installed."
+    fi
+}
+
+install_devpod() {
+    if ! command -v devpod &> /dev/null; then
+        log_info "Installing DevPod CLI..."
+        curl -L https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-amd64 -o devpod
+        sudo install -c -m 0755 devpod /usr/local/bin && rm devpod
+    else
+        log_info "DevPod is already installed."
+    fi
+}
+
 install_vps_essentials() {
     log_info "Installing VPS essentials (K3s, rsync)..."
     sudo apt-get update && sudo apt-get install -y rsync curl
@@ -86,6 +110,8 @@ case "$1" in
     local)
         log_info "Starting FULL LOCAL installation..."
         install_uv
+        install_devbox
+        install_devpod
         install_k3d
         install_k8s_tools
         install_helm

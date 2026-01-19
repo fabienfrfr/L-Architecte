@@ -1,10 +1,4 @@
 {
-    /*
-   * Prerequisites:
-   * 1. Docker must be installed on your system.
-   * 2. VSCode with the "Remote - Containers" extension installed.
-   * 3. (re)Build with Ctrl+Shift+P > Remote-Containers: Rebuild Container
-   */
     "name": "TheArchitect Control Plane",
     "image": "jetpackio/devbox:latest",
     "initializeCommand": "make k-cluster",
@@ -22,9 +16,6 @@
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "moby": false,
             "installDockerBuildx": true
-        },
-        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-            "version": "latest"
         }
     },
     "mounts": [
@@ -50,6 +41,7 @@
             "ms-kubernetes-tools.vscode-kubernetes-tools",
             "ms-azuretools.vscode-docker",
             "stateful.runme",
+            "jeanp413.open-remote-ssh",
             
             // --- Architecture & Docs ---
             "eamodio.gitlens",
@@ -59,6 +51,7 @@
         "settings": {
             "python.defaultInterpreterPath": "/usr/bin/python3",
             "python.testing.pytestEnabled": true,
+            "python.testing.pytestPath": "kubectl exec -i deployment/architect-deployment -- pytest",
             
             "[python]": {
                 "editor.defaultFormatter": "charliermarsh.ruff",
