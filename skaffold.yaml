@@ -19,12 +19,17 @@ build:
       docker:
         dockerfile: infra/Ollama.Dockerfile
 
-manifests:
-  rawYaml:
-    - infra/k8s-manifests.yaml
-
 deploy:
-  kubectl: {}
+  helm:
+    releases:
+      - name: the-architect
+        chartPath: infra/charts/the-architect
+        valuesFiles:
+          - infra/charts/the-architect/values.yaml
+        setValueTemplates:
+          ollama.image: "{{.IMAGE_FULLY_QUALIFIED_custom_ollama_gemma}}"
+          architect.image: "{{.IMAGE_FULLY_QUALIFIED_agentic_architect}}"
+
 
 portForward:
   # NiceGUI
@@ -41,6 +46,6 @@ portForward:
     localPort: 6006
   # Remote dev (Interactive)
   - resourceType: service
-    resourceName: architect
+    resourceName: architect-service
     port: 2718
     localPort: 2718

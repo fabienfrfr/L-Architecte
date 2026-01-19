@@ -41,6 +41,15 @@ install_k3d() {
     fi
 }
 
+install_helm() {
+    if ! command -v helm &> /dev/null; then
+        log_info "Installing Helm (Kubernetes Package Manager)..."
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    else
+        log_info "Helm is already installed."
+    fi
+}
+
 install_k8s_tools() {
     log_info "Installing Kubernetes CLI tools (Skaffold & Kubectl)..."
     # Skaffold
@@ -79,19 +88,21 @@ case "$1" in
         install_uv
         install_k3d
         install_k8s_tools
+        install_helm
         log_success "Local environment ready."
         ;;
     devcontainer)
         log_info "Starting DEVCONTAINER setup..."
-        # In DevContainer, we only need the management tools
         install_uv
         install_k8s_tools
+        install_helm
         log_success "DevContainer tools installed."
         ;;
     vps)
         log_info "Starting VPS production setup..."
         install_vps_essentials
-        log_success "VPS is now a K3s node."
+        install_helm
+        log_success "VPS is now a K3s node with Helm."
         ;;
     *)
         show_help

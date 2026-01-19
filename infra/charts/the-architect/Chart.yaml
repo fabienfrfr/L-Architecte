@@ -1,0 +1,15 @@
+apiVersion: v2
+name: the-architect
+description: Helm chart
+
+type: application
+
+# Chart version
+version: 0.1.0
+
+# Code version
+appVersion: "1.0.0"
+
+maintainers:
+  - name: Fabien Furfaro
+    url: https://github.com/fabienfrfr/AgenticArchitect

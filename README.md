@@ -68,7 +68,7 @@ make install && make k-cluster && make setup-dev && skaffold dev
 
 1. **`make install`**: Automatically detects your OS and installs `uv`, `k3d`, `kubectl`, and `skaffold`.
 2. **`make k-cluster`**: Provisions a local K3d cluster with optimized port-forwarding.
-3. **`make setup-dev`**: Uses **UV** to sync Python dependencies and pre-pulls **Gemma 2:270M** into the cluster.
+3. **`make setup-dev`**: Uses **UV** to sync Python dependencies and pre-pulls light **Gemma 3:270M** into the cluster.
 4. **`skaffold dev`**: Starts continuous hot-reload. Any file change is instantly reflected in the running pods.
 
 ## 🛠️ The Power Tools

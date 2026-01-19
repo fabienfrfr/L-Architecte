@@ -1,0 +1,19 @@
+# Default Configuration
+namespace: agentic-architect
+
+ollama:
+  image: custom-ollama-gemma
+  cpu: "1"
+  memory: "2Gi"
+
+architect:
+  image: agentic-architect
+  env: "test"
+  cpu: "0.5"
+  memory: "1Gi"
+
+phoenix:
+  image: arizephoenix/phoenix:latest
+
+ingress:
+  enabled: false

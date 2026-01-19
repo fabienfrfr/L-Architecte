@@ -3,7 +3,6 @@ NAMESPACE    = agentic-architect
 CLUSTER_NAME = agentic-cluster
 DOMAIN       = thearchitect.dev
 USER         = ubuntu
-K8S_STACK    = infra/k3s-stack.yaml
 
 # --- Internal K8s DNS / Ports ---
 OLLAMA_URL                 = http://ollama:11434
