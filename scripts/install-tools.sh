@@ -117,6 +117,14 @@ case "$1" in
         install_helm
         log_success "Local environment ready."
         ;;
+    ci)
+        log_info "Starting CI installation..."
+        install_uv
+        install_k3d
+        install_k8s_tools
+        install_helm
+        log_success "CI environment ready."
+        ;;
     devcontainer)
         log_info "Starting DEVCONTAINER setup..."
         install_uv

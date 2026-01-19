@@ -4,6 +4,9 @@ CLUSTER_NAME = agentic-cluster
 DOMAIN       = thearchitect.dev
 USER         = ubuntu
 
+DETECTED_MODE := $(shell [ -f /.dockerenv ] && echo "devcontainer" || [ "$$CI" = "true" ] && echo "ci" || echo "local")
+MODE ?= $(DETECTED_MODE)
+
 # --- Internal K8s DNS / Ports ---
 OLLAMA_URL                 = http://ollama:11434
 PHOENIX_URL                = http://phoenix:6006
@@ -16,8 +19,9 @@ help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 ##@ Setup & Installation
-install: ## Install system binaries (Skaffold, Kubectl, UV) via script
-	@bash scripts/install-tools.sh $$( [ -f /.dockerenv ] && echo "devcontainer" || echo "local" )
+install: ## Install system binaries
+	@echo "🛠️ Target mode: $(MODE)"
+	@bash scripts/install-tools.sh $(MODE)
 
 setup-dev: .env ## Sync dependencies and prepare project
 	uv sync
