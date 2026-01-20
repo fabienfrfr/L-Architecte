@@ -72,6 +72,17 @@ nuke: clean ## ☢️  Wipe EVERYTHING (k3d + docker)
 	@docker system prune -af --volumes
 	@echo "✅ Reset complete."
 
+##@ VS-codium
+setup-vscodium:
+	@echo "⚠️  WARNING: This will update VSCodium's argv.json (Proposed APIs)."
+	@echo "A backup will be created, but comments in the file will be removed."
+	@read -p "Proceed with update? [y/N] " ans; \
+	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
+		python3 scripts/setup-codium-api.py; \
+	else \
+		echo "Operation aborted."; exit 1; \
+	fi
+
 #  Automatically collect all targets with descriptions for .PHONY
 ALL_TARGETS := $(shell grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | cut -d: -f1)
 
