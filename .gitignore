@@ -21,6 +21,7 @@ ollama_data/
 skaffold
 temp
 versions/*/
+devbox.lock
 
 # Infra
 .pulumi/

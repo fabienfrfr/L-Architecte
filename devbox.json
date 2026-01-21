@@ -1,20 +1,26 @@
 {
   "packages": [
     "python@3.13",
+    "uv",
+    "curl",
+    "zsh",
+    "oh-my-zsh",
     "ruff",
     "kubectl",
     "kubernetes-helm",
     "skaffold",
     "openjdk@17",
-    "ollama",
     "git",
     "rsync",
     "gnumake" 
   ],
   "shell": {
     "init_hook": [
-      "echo 'TheArchitect Initialization..'",
-      "make install"
+      "echo 'Welcome Dev! TheArchitect-Kernel is ready.'",
+      "exec zsh"
     ]
+  },
+  "scripts": {
+    "install": "make install"
   }
 }

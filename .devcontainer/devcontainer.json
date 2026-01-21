@@ -4,72 +4,55 @@
    * VSCodim with the "3timeslazy.vscodium-devpodcontainers" & "jeanp413.open-remote-ssh" extension installed.
    * NEED Force "enable-proposed-api" in micro ~/.vscode-oss/argv.json (Open a remote window access)
    */
-    "name": "TheArchitect Control Plane",
+    "name": "TheArchitect-Kernel",
     "image": "jetpackio/devbox:latest",
-    "initializeCommand": "make k-cluster",
-    "features": {
-        "ghcr.io/devcontainers/features/git:1": {},
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "installZsh": true,
-            "configureZshAsDefaultShell": true,
-            "installRsync": true
-        },
-        "ghcr.io/devcontainers/features/java:1": {
-            "version": "17"
-        },
-        // DooD for k3d (if K3s, use DinD)
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-            "moby": false,
-            "installDockerBuildx": true
-        },
-        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-            "version": "latest"
-        }
-    },
-    "mounts": [
-        "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind"
-    ],
+    "remoteUser": "devbox",
     "forwardPorts": [8080, 6006, 2718, 11434],
-    "postCreateCommand": "make install && sudo chown -R vscode:vscode /home/vscode/.kube",
-    "postStartCommand": "make setup-dev && (skaffold dev --port-forward &)",
+
+    "workspaceFolder": "/workspaces/AgenticArchitect",
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    ],
+    "containerEnv": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+    },
+    "postCreateCommand": "devbox run install",    
+    "postStartCommand": "(skaffold dev --port-forward &)",
+
     "customizations": {
-    "vscodium": {
-        "extensions": [
-            // --- Core Python & Quality ---
-            "ms-python.python",
-            "ms-python.debugpy",
-            "charliermarsh.ruff", // pylint, black, isort
-            
-            // --- AI & Data Science ---
-            "ms-toolsai.jupyter",
-            "ms-toolsai.jupyter-renderers",
-            "marimo-team.vscode-marimo", 
-            
-            // --- Infrastructure & DevOps ---
-            "ms-kubernetes-tools.vscode-kubernetes-tools",
-            "ms-azuretools.vscode-docker",
-            "stateful.runme",
-            
-            // --- Architecture & Docs ---
-            "eamodio.gitlens",
-            "jebbs.plantuml",
-            "bierner.markdown-mermaid"
-        ],
-        "settings": {
-            "python.defaultInterpreterPath": "/usr/bin/python3",
-            "python.testing.pytestEnabled": true,
-            "python.testing.pytestPath": "kubectl exec -i deployment/architect-deployment -- pytest",
-            
-            "[python]": {
-                "editor.defaultFormatter": "charliermarsh.ruff",
-                "editor.formatOnSave": true,
-                "editor.codeActionsOnSave": {
-                    "source.fixAll.ruff": "explicit",
-                    "source.organizeImports.ruff": "explicit"
+        "devpod": {
+            "ide": "codium"
+        },
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "charliermarsh.ruff",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.jupyter-renderers",
+                "marimo-team.vscode-marimo", 
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "ms-azuretools.vscode-docker",
+                "stateful.runme",
+                "eamodio.gitlens",
+                "jebbs.plantuml",
+                "bierner.markdown-mermaid"
+            ],
+            "settings": {
+            "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/usr/bin/zsh",
+                        "fallback": "bash"
+                    }
+                },
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "python.defaultInterpreterPath": "/home/devbox/project/.devbox/gen/env/python/bin/python",
+                "python.testing.pytestEnabled": true,
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true
                 }
             }
         }
     }
-},
-    "remoteUser": "vscode"
-}
+} 

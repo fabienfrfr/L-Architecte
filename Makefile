@@ -113,6 +113,12 @@ setup-vscodium:
 		echo "Operation aborted."; exit 1; \
 	fi
 
+setup-devpod:
+	devpod provider add docker || true
+	devpod provider use docker
+	devpod delete agenticarchitect || true
+	devpod up . --ide codium
+
 #  Automatically collect all targets with descriptions for .PHONY
 ALL_TARGETS := $(shell grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | cut -d: -f1)
 
