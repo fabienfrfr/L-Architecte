@@ -102,17 +102,7 @@ vps-up: ## Update everything (DNS + VPS Setup)
 vps-down: ## Destroy everything (Careful!)
 	@$(PULUMI_CMD) destroy
 
-##@ VS-codium
-setup-vscodium:
-	@echo "⚠️  WARNING: This will update VSCodium's argv.json (Proposed APIs)."
-	@echo "A backup will be created, but comments in the file will be removed."
-	@read -p "Proceed with update? [y/N] " ans; \
-	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
-		python3 scripts/setup-codium-api.py; \
-	else \
-		echo "Operation aborted."; exit 1; \
-	fi
-
+##@ DevPod in the box
 setup-devpod:
 	devpod provider add docker || true
 	devpod provider use docker

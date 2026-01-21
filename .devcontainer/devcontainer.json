@@ -1,8 +1,7 @@
 {
     /*
    * Prerequisites:
-   * VSCodim with the "3timeslazy.vscodium-devpodcontainers" & "jeanp413.open-remote-ssh" extension installed.
-   * NEED Force "enable-proposed-api" in micro ~/.vscode-oss/argv.json (Open a remote window access)
+   * VSCodim with the "jeanp413.open-remote-ssh" extension installed.
    */
     "name": "TheArchitect-Kernel",
     "image": "jetpackio/devbox:latest",
