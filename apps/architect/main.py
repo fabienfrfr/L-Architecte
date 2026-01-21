@@ -2,6 +2,9 @@ import multiprocessing
 import sys
 import logging
 
+import debugpy
+debugpy.listen(("0.0.0.0", 5678))
+
 from nicegui import ui
 from apps.architect.ui.layout import ArchitectLayout
 from apps.architect.controller import ArchitectController

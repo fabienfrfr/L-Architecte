@@ -49,3 +49,8 @@ portForward:
     resourceName: architect-service
     port: 2718
     localPort: 2718
+  # Debug mode
+  - resourceType: deployment
+    resourceName: architect
+    port: 5678
+    localPort: 5678

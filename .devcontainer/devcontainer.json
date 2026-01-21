@@ -1,7 +1,7 @@
 {
     /*
    * Prerequisites:
-   * VSCodim with the "jeanp413.open-remote-ssh" extension installed.
+   * VSCodium with the "jeanp413.open-remote-ssh" extension installed.
    */
     "name": "TheArchitect-Kernel",
     "image": "jetpackio/devbox:latest",
