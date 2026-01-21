@@ -23,11 +23,9 @@ temp
 versions/*/
 
 # Infra
-.terraform/
-*.tfstate
-*.tfstate.backup
-.terraform.lock.hcl
-*.tfvars
+.pulumi/
+Pulumi.*.yaml
+!Pulumi.yaml
 
 # Python (Poetry, Pipenv, UV) --> Dont use jupyter notebooks here
 poetry.lock

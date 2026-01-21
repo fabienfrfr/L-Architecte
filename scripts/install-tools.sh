@@ -32,6 +32,20 @@ install_uv() {
     fi
 }
 
+install_pulumi() {
+    if ! command -v pulumi &> /dev/null; then
+        log_info "Installing Pulumi CLI..."
+        curl -fsSL https://get.pulumi.com | sh
+    else
+        log_info "Pulumi CLI is already installed."
+    fi
+
+    if command -v uv &> /dev/null; then
+        log_info "Syncing Pulumi libs with uv..."
+        uv pip install pulumi pulumi-ovh pulumi-command
+    fi
+}
+
 install_k3d() {
     if ! command -v k3d &> /dev/null; then
         log_info "Installing k3d (Local Cluster Provider)..."
@@ -51,16 +65,28 @@ install_helm() {
 }
 
 install_k8s_tools() {
-    log_info "Installing Kubernetes CLI tools (Skaffold & Kubectl)..."
+    log_info "Checking Kubernetes CLI tools (Skaffold & Kubectl)..."
+
     # Skaffold
-    curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
-    sudo install skaffold /usr/local/bin/ && rm skaffold
+    if ! command -v skaffold &> /dev/null; then
+        log_info "Installing Skaffold..."
+        curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+        sudo install skaffold /usr/local/bin/
+        rm skaffold
+    else
+        log_info "Skaffold is already installed."
+    fi
     
     # Kubectl
-    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl
+    if ! command -v kubectl &> /dev/null; then
+        log_info "Installing Kubectl..."
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        rm kubectl
+    else
+        log_info "Kubectl is already installed."
+    fi
 }
-
 
 install_devbox() {
     if ! command -v devbox &> /dev/null; then
@@ -97,6 +123,7 @@ show_help() {
     echo "Usage: $0 [target]"
     echo "Targets:"
     echo "  local          Install everything for a full local dev machine"
+    echo "  ci             Install tools for a CI"
     echo "  devcontainer   Install only tools needed inside the DevContainer (Skaffold, UV)"
     echo "  vps            Install K3s and production essentials"
     exit 1
@@ -110,6 +137,7 @@ case "$1" in
     local)
         log_info "Starting FULL LOCAL installation..."
         install_uv
+        install_pulumi
         install_devbox
         install_devpod
         install_k3d
@@ -120,6 +148,7 @@ case "$1" in
     ci)
         log_info "Starting CI installation..."
         install_uv
+        install_pulumi
         install_k3d
         install_k8s_tools
         install_helm

@@ -1,0 +1,6 @@
+name: AgenticArchitect-Infra
+runtime:
+  name: python
+  options:
+    virtualenv: ../.venv
+description: Infrastructure-as-Code for TheArchitect VPS Deployment

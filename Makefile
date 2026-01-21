@@ -7,12 +7,23 @@ USER         = ubuntu
 DETECTED_MODE := $(shell [ -f /.dockerenv ] && echo "devcontainer" || [ "$$CI" = "true" ] && echo "ci" || echo "local")
 MODE ?= $(DETECTED_MODE)
 
+# Infrastructure
+INFRA_DIR    = infra
+PULUMI_ENV   = PULUMI_CONFIG_PASSPHRASE=""
+PULUMI_CMD   = $(PULUMI_ENV) uv run pulumi --cwd $(INFRA_DIR)
+
 # --- Internal K8s DNS / Ports ---
 OLLAMA_URL                 = http://ollama:11434
 PHOENIX_URL                = http://phoenix:6006
 PHOENIX_COLLECTOR_ENDPOINT = http://phoenix:4317
 
 .DEFAULT_GOAL := help
+
+# Cloud Provider
+OVH_ENDPOINT=ovh-eu
+OVH_APPLICATION_KEY=.
+OVH_APPLICATION_SECRET=.
+OVH_CONSUMER_KEY=.
 
 ##@ General
 help: ## Display this help message
@@ -38,7 +49,7 @@ run: ## Launch application using UV (Auto-venv)
 test: ## Run pytest using UV
 	export PYTHONPATH=. && uv run pytest tests/
 
-map: ## Export project structure to JSON
+code-map: ## Export project structure to JSON
 	uv run python3 libs/code_mapper.py --to-json
 
 ##@ Kubernetes (k3d/k3s)
@@ -55,7 +66,7 @@ k-logs: ## Follow logs for the main agent
 vps-bootstrap: ## One-click K3s installation on OVH VPS
 	ssh $(USER)@$(DOMAIN) 'bash -s' < scripts/install.sh vps
 
-deploy: map ## Build map and push to production VPS
+deploy: ## Build map and push to production VPS
 	@echo "📤 Uploading files to $(DOMAIN)..."
 	rsync -avz --exclude={'.git','.venv','__pycache__','.pytest_cache'} ./ $(USER)@$(DOMAIN):~/AgenticArchitect
 	ssh $(USER)@$(DOMAIN) "kubectl apply -f ~/AgenticArchitect/$(K8S_STACK)"
@@ -71,6 +82,25 @@ nuke: clean ## ☢️  Wipe EVERYTHING (k3d + docker)
 	@docker stop $$(docker ps -aq) 2>/dev/null || true
 	@docker system prune -af --volumes
 	@echo "✅ Reset complete."
+
+##@ (Pulumi) Infrastructure
+vps-auth: ## Generate SSH key if missing and copy it to VPS
+	@if [ ! -f ~/.ssh/id_rsa ]; then \
+		echo "Generating new SSH key..."; \
+		ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""; \
+	fi
+	@ssh-copy-id ubuntu@thearchitect.dev
+
+vps-setup: ## Initialize Pulumi local stack
+	@pulumi login --local
+	@$(PULUMI_CMD) stack init dev || echo "Stack dev already exists"
+
+vps-up: ## Update everything (DNS + VPS Setup)
+	@$(PULUMI_CMD) config set all false
+	@$(PULUMI_CMD) up --skip-preview
+
+vps-down: ## Destroy everything (Careful!)
+	@$(PULUMI_CMD) destroy
 
 ##@ VS-codium
 setup-vscodium:
