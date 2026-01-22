@@ -18,7 +18,7 @@
   "shell": {
     "scripts": {
       "set": "make install && make cluster",
-      "up": "fuser -k 8080/tcp || true && nohup skaffold dev --port-forward --tail > /tmp/skaffold.log 2>&1 &",
+      "up": "fuser -k 8080/tcp || true && skaffold dev --port-forward --tail",
       "test-ci": [
         "kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s",
         "kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s",

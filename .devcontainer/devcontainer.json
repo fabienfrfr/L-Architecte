@@ -31,7 +31,7 @@
 
     // DevBox Command
     "postCreateCommand": "devbox run set",
-    "postStartCommand": "devbox run up",
+    "postAttachCommand": "devbox run up",
 
     // IDE
     "customizations": {

@@ -60,13 +60,13 @@ cluster: ## Create local k3d cluster with port forwarding
 		k3d cluster create $(CLUSTER_NAME) \
 			--port "8888:80@loadbalancer" \
 			--api-port 6443 \
-			--k3s-arg "--tls-san=host.k3d.internal@server:0" \
+			--k3s-arg "--tls-san=127.0.0.1@server:0" \
 			--wait; \
 	fi
 
 	@mkdir -p $(HOME)/.kube
-	@k3d kubeconfig get $(CLUSTER_NAME) > $(HOME)/.kube/config
-	@kubectl config set-cluster k3d-$(CLUSTER_NAME) --server=https://host.k3d.internal:6443
+	@k3d kubeconfig get $(CLUSTER_NAME) --server https://127.0.0.1:6443 > $(HOME)/.kube/config
+	@kubectl config use-context k3d-$(CLUSTER_NAME)
 
 k-status: ## Check status of local/current cluster
 	kubectl get pods,svc,pvc -n $(NAMESPACE) -o wide
