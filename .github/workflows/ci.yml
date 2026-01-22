@@ -21,32 +21,18 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc "/usr/local/share/boost"
           sudo docker image prune -af
 
-      - name: Install Tools
-        run: |
-          make install MODE=ci
-      
-      - name: Setup "Local" Infrastructure (K3D)
-        run: bash scripts/setup-k3d-cluster.sh --reset
+      - name: Install Devbox
+        uses: jetpack-io/devbox-install-action@v0.11.0
+
+      - name: Setup Infrastructure (Devbox + K3D)
+        run: devbox run set
 
       - name: Build and Deploy with Skaffold
-        # run once: build images and deploy to the cluster
-        run: skaffold run
+        run: devbox run skaffold run
 
-      - name: Wait for Pods
-        run: |
-          kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s
-          kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s
-          # Verify Ollama is ready for AgenticArchitect
-          kubectl exec -n agentic-architect deployments/ollama -- ollama list
-
-      - name: Run Pytest
-        # We run the tests inside the pod to ensure environment parity
-        run: |
-          kubectl exec -n agentic-architect deployments/architect -- pytest tests/
+      - name: Run Integration Tests
+        run: devbox run test-ci
 
       - name: Debug on Failure
         if: failure()
-        run: |
-          kubectl get pods -n agentic-architect
-          kubectl logs -n agentic-architect -l app=architect --tail=100
-          kubectl describe pod -l app=architect -n agentic-architect
+        run: devbox run debug-ci

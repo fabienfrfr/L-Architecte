@@ -2,6 +2,7 @@
   "packages": [
     "python@3.13",
     "uv",
+    "k3d",
     "curl",
     "zsh",
     "oh-my-zsh",
@@ -15,12 +16,18 @@
     "gnumake" 
   ],
   "shell": {
-    "init_hook": [
-      "echo 'Welcome Dev! TheArchitect-Kernel is ready.'",
-      "exec zsh"
-    ]
-  },
-  "scripts": {
-    "install": "make install"
-  }
+    "scripts": {
+      "set": "make install && make cluster",
+      "up": "fuser -k 8080/tcp || true && nohup skaffold dev --port-forward --tail > /tmp/skaffold.log 2>&1 &",
+      "test-ci": [
+        "kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s",
+        "kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s",
+        "kubectl exec -n agentic-architect deployments/architect -- pytest tests/"
+      ],
+      "debug-ci": [
+        "kubectl get pods -n agentic-architect",
+        "kubectl logs -n agentic-architect -l app=architect --tail=100"
+      ]
+    }
+}
 }

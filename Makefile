@@ -53,8 +53,20 @@ code-map: ## Export project structure to JSON
 	uv run python3 libs/code_mapper.py --to-json
 
 ##@ Kubernetes (k3d/k3s)
-k-cluster: ## Create local k3d cluster with port forwarding
-	k3d cluster create $(CLUSTER_NAME) --port "8080:80@loadbalancer"
+cluster: ## Create local k3d cluster with port forwarding
+	@if k3d cluster list | grep -q $(CLUSTER_NAME); then \
+		echo "Cluster $(CLUSTER_NAME) exists..."; \
+	else \
+		k3d cluster create $(CLUSTER_NAME) \
+			--port "8888:80@loadbalancer" \
+			--api-port 6443 \
+			--k3s-arg "--tls-san=host.k3d.internal@server:0" \
+			--wait; \
+	fi
+
+	@mkdir -p $(HOME)/.kube
+	@k3d kubeconfig get $(CLUSTER_NAME) > $(HOME)/.kube/config
+	@kubectl config set-cluster k3d-$(CLUSTER_NAME) --server=https://host.k3d.internal:6443
 
 k-status: ## Check status of local/current cluster
 	kubectl get pods,svc,pvc -n $(NAMESPACE) -o wide
