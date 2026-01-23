@@ -19,7 +19,7 @@ PHOENIX_COLLECTOR_ENDPOINT = http://phoenix:4317
 
 .DEFAULT_GOAL := help
 
-# Cloud Provider
+# Cloud Provider (api.ovh.com/create-app/ + https://eu.api.ovh.com/createToken/?GET=/vps/*)
 OVH_ENDPOINT=ovh-eu
 OVH_APPLICATION_KEY=.
 OVH_APPLICATION_SECRET=.
@@ -58,23 +58,20 @@ cluster: ## Create local k3d cluster with port forwarding
 	fi
 
 ##@ (Pulumi) Infrastructure & Deployment
-infra-plan: ## Preview infrastructure changes
-	@$(PULUMI_CMD) preview
 
-infra-deploy: ## Deploy infrastructure and app to VPS
-	@$(PULUMI_CMD) up --yes
+infra-auth: ## Setup Pulumi secrets for OVH API (Interactive)
+	@echo "🔐 Configuring OVH API Secrets for Pulumi..."
+	@read -p "Enter OVH Application Key: " ak; \
+	 $(PULUMI_CMD) config set ovh:applicationKey $$ak --secret
+	@read -p "Enter OVH Application Secret: " as; \
+	 $(PULUMI_CMD) config set ovh:applicationSecret $$as --secret
+	@read -p "Enter OVH Consumer Key: " ck; \
+	 $(PULUMI_CMD) config set ovh:consumerKey $$ck --secret
+	@$(PULUMI_CMD) config set ovh:endpoint $(OVH_ENDPOINT)
+	@echo "✅ Pulumi secrets configured in $(INFRA_DIR)/Pulumi.dev.yaml"
 
-infra-rebuild: ## Force a hard reset of the VPS via Pulumi
-	@$(PULUMI_CMD) config set hard_rebuild true
-	@$(PULUMI_CMD) up --yes
-	@$(PULUMI_CMD) config set hard_rebuild false
-
-infra-local: ## Initialize Pulumi local stack
-	@pulumi login --local
-	@$(PULUMI_CMD) stack init dev || echo "Stack dev already exists"
-
-infra-set-kubeconfig: ## Set kubeconfig secret (used in CI)
-	@$(PULUMI_CMD) config set --secret kubeconfig "$$KUBECONFIG_CONTENT"
+infra-reinstall: ## 🚀 FULL REINSTALL: Trigger OVH Reinstall + System + App
+	$(PULUMI_CMD) up -c setup_infra=true -c setup_system=true -c deploy_app=true --yes
 
 ##@ Maintenance
 clean: ## Remove python caches and temporary files

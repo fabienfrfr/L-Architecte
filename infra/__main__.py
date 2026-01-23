@@ -1,158 +1,186 @@
 import os
-import textwrap
-import subprocess
+import json
 from pathlib import Path
+from typing import Optional, List
+
+import base64
 
 import pulumi
 import pulumi_ovh as ovh
 import pulumi_kubernetes as k8s
+import pulumi_command as command
 from pulumi_command import remote
 
-# --- Configuration Helpers ---
+import ovh as ovh_sdk
 
-def get_script_content(filename: str) -> str:
-    """
-    Read the installation script from the local scripts directory.
-    Ensures that the infrastructure state is tied to the script content.
-    """
-    current_dir = Path(__file__).resolve().parent
-    script_path = current_dir.parent / "scripts" / filename
-    if not script_path.exists():
-        raise FileNotFoundError(f"Could not find the script at {script_path}")
-    return script_path.read_text(encoding="utf-8")
+# --- 1. Configuration Manager ---
 
-def ensure_config(config: pulumi.Config, key: str, default_value: str) -> str:
-    """
-    Check if a config key exists, otherwise initialize it in the Pulumi YAML file.
-    This facilitates 'Lazy' setup for new environments.
-    """
-    value = config.get(key)
-    if not value:
-        pulumi.log.info(f"Config '{key}' not found. Initializing with: {default_value}")
-        subprocess.run(["pulumi", "config", "set", key, default_value], check=True)
-        return default_value
-    return value
+class ArchitectConfig:
+    """Manages project configuration and local file parsing."""
+    def __init__(self):
+        self.config = pulumi.Config()
+        self.ovh_config = pulumi.Config("ovh")
+        self.vps_name: str = self.config.get("vps_name") or "vps-5dc72e2c.vps.ovh.net"
+        self.vps_user: str = self.config.get("vps_user") or "ubuntu"
+        self.domain: str = self.config.get("domain") or "thearchitect.dev"
+        self.image: str = self.config.get("image_id") or "ubuntu2404_64"
+        
+        # Deployment Flags (Toggles)
+        self.should_setup_infra: bool = self.config.get_bool("setup_infra") or False
+        self.should_setup_system: bool = self.config.get_bool("setup_system") or False
+        self.should_deploy_app: bool = self.config.get_bool("deploy_app") or False
 
-# --- Infrastructure Management Functions ---
+        self.reinstall_force: str = self.config.get("reinstall_force") or "0"
 
-def rebuild_vps(vps_name: str, image_id: str) -> ovh.vps.Vps:
-    """
-    Hard Reset: Reinstalls the VPS using the OVH provider.
-    WARNING: This wipes all data on the target VPS.
-    """
-    return ovh.vps.Vps("vps-reinstall",
-        name=vps_name,
-        rebuild=True,
-        image=image_id
+    @property
+    def public_key(self) -> str:
+        path = Path.home() / ".ssh" / "id_rsa.pub"
+        return path.read_text().strip()
+
+    @property
+    def bootstrap_script(self) -> str:
+        path = Path(__file__).resolve().parent.parent / "scripts" / "install-tools.sh"
+        return path.read_text()
+
+# --- 2. Resource Modules ---
+
+from pulumi.dynamic import Resource, ResourceProvider, CreateResult
+
+# 1. Le "Moteur" de réinstallation
+class OVHReinstallProvider(ResourceProvider):
+    def create(self, props):
+        client = ovh_sdk.Client(
+            endpoint='ovh-eu',
+            application_key=props['ak'],
+            application_secret=props['as_key'],
+            consumer_key=props['ck'],
+        )
+        # L'appel RÉEL à l'API
+        client.post(f"/vps/{props['vps_name']}/reinstall", 
+                    templateId=props['image'], 
+                    sshKey=[props['ssh_key']])
+        
+        return CreateResult(id_="ovh-reinstall-id", outs=props)
+
+# 2. La Ressource Pulumi
+class OVHReinstall(Resource):
+    def __init__(self, name, props, opts=None):
+        super().__init__(OVHReinstallProvider(), name, props, opts)
+
+# 3. La fonction de gestion révisée
+def handle_vps_reinstall(cfg: ArchitectConfig) -> tuple[str, List[pulumi.Resource]]:
+    vps_data = ovh.vps.get_vps(service_name=cfg.vps_name)
+    vps_host = vps_data.service_name 
+    deps = []
+
+    if not cfg.should_setup_infra:
+        return vps_host, deps
+
+    # On crée la ressource de réinstallation
+    reinstall = OVHReinstall("vps-reinstall-action", {
+        "ak": cfg.ovh_config.get("applicationKey"),
+        "as_key": cfg.ovh_config.require_secret("applicationSecret"),
+        "ck": cfg.ovh_config.require_secret("consumerKey"),
+        "vps_name": cfg.vps_name,
+        "image": cfg.image,
+        "ssh_key": cfg.public_key,
+        "force": cfg.reinstall_force # Pour forcer le remplacement
+    })
+    deps.append(reinstall)
+
+    # 4. L'attente de 3 minutes (BLOQUANTE)
+    wait_ready = command.local.Command("wait-for-vps-reboot",
+        create="sleep 180",
+        opts=pulumi.ResourceOptions(depends_on=[reinstall])
     )
+    deps.append(wait_ready)
 
-def manage_dns_records(domain: str, ip: str) -> ovh.domain.ZoneRecord:
-    """
-    Ensures the DNS A record points to the current VPS IP address.
-    """
-    return ovh.domain.ZoneRecord("thearchitect-a-record",
-        zone=domain,
-        subdomain="", # Root domain
-        fieldtype="A",
-        target=ip,
-        ttl=3600
-    )
+    return vps_host, deps
 
-def bootstrap_vps_system(vps_host: str, vps_user: str, depend_on_resource=None) -> remote.Command:
-    """
-    Soft Reset / Provisioning: Executes the 'install-tools.sh' script via SSH.
-    Prepares K3s, Docker, and system dependencies.
-    """
-    script_content = get_script_content("install-tools.sh")
+def provision_system(vps_ip: pulumi.Output[str], cfg: ArchitectConfig, deps: List[pulumi.Resource]) -> Optional[remote.Command]:
+    """Executes the bootstrap script on the remote host."""
+    if not cfg.should_setup_system:
+        return None
 
     connection = remote.ConnectionArgs(
-        host=vps_host,
-        user=vps_user,
-        agent_socket_path=os.environ.get("SSH_AUTH_SOCK"),    
+        host=vps_ip,
+        user=cfg.vps_user,
+        agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
     )
 
-    install_payload = textwrap.dedent(f"""
-        cat << 'EOF' > /tmp/install.sh
-        {script_content}
-        EOF
-        chmod +x /tmp/install.sh
-        bash /tmp/install.sh vps
-    """).strip()
+    script_content = cfg.bootstrap_script
+    encoded_script = base64.b64encode(script_content.encode('utf-8')).decode('utf-8')
 
-    return remote.Command(
-        "vps-system-bootstrap",
+    install_cmd = (
+        f"echo '{encoded_script}' | base64 -d > /tmp/install.sh && "
+        f"chmod +x /tmp/install.sh && "
+        f"bash /tmp/install.sh vps"
+    )
+
+    return remote.Command("vps-bootstrap",
         connection=connection,
-        create=install_payload,
-        update=install_payload,
+        create=install_cmd,
         triggers=[script_content],
-        opts=pulumi.ResourceOptions(
-            delete_before_replace=True,
-            depends_on=[depend_on_resource] if depend_on_resource else []
-        )
+        opts=pulumi.ResourceOptions(depends_on=deps)
     )
 
-def deploy_kubernetes_resources(provider: k8s.Provider, image_tag: str):
-    """
-    Deploys the AgenticArchitect application stack to the K3s cluster.
-    """
+def deploy_k8s_app(vps_ip: pulumi.Output[str], cfg: ArchitectConfig, dependency: Optional[pulumi.Resource]):
+    """Retrieves kubeconfig and deploys the AgenticArchitect application."""
+    if not cfg.should_deploy_app:
+        return
+
+    kubeconfig_cmd = remote.Command("get-kubeconfig",
+        connection=remote.ConnectionArgs(
+            host=vps_ip,
+            user=cfg.vps_user,
+            agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
+        ),
+        create=f"sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/{vps_ip}/g'",
+        opts=pulumi.ResourceOptions(depends_on=[dependency] if dependency else [])
+    )
+
+
+    # 2. Configure K8s Provider
+    k8s_provider = k8s.Provider("k3s-provider",
+        kubeconfig=kubeconfig_cmd.stdout,
+        opts=pulumi.ResourceOptions(depends_on=[kubeconfig_cmd])
+    )
+
+    # 3. Deploy Pods
     app_labels = {"app": "architect"}
-    
-    return k8s.apps.v1.Deployment(
-        "architect-deployment",
-        spec={
-            "selector": {"match_labels": app_labels},
-            "replicas": 2, 
-            "template": {
-                "metadata": {"labels": app_labels},
-                "spec": {
-                    "containers": [{
-                        "name": "architect",
-                        "image": f"ghcr.io/fabienfrfr/architect:{image_tag}",
-                        "ports": [{"container_port": 8080}]
-                    }]
-                }
-            }
-        },
-        opts=pulumi.ResourceOptions(provider=provider)
+    k8s.apps.v1.Deployment("architect-app",
+        spec=k8s.apps.v1.DeploymentSpecArgs(
+            selector=k8s.meta.v1.LabelSelectorArgs(match_labels=app_labels),
+            template=k8s.core.v1.PodTemplateSpecArgs(
+                metadata=k8s.meta.v1.ObjectMetaArgs(labels=app_labels),
+                spec=k8s.core.v1.PodSpecArgs(
+                    containers=[k8s.core.v1.ContainerArgs(
+                        name="agentic-architect",
+                        image="ghcr.io/fabienfrfr/agenticarchitect:latest",
+                    )]
+                )
+            )
+        ),
+        opts=pulumi.ResourceOptions(provider=k8s_provider)
     )
 
-# --- Orchestration ---
+# --- 3. Orchestration ---
 
 def main():
-    config = pulumi.Config()
+    cfg = ArchitectConfig()
+    
+    # Layer 1: Infrastructure (Existing VPS + Reinstall)
+    vps_ip, infra_deps = handle_vps_reinstall(cfg)
+    
+    # Layer 2: System Setup (k3s, docker, etc.)
+    bootstrap_cmd = provision_system(vps_ip, cfg, infra_deps)
+    
+    # Layer 3: Application (K8s)
+    deploy_k8s_app(vps_ip, cfg, bootstrap_cmd)
 
-    # 1. Config Initialization
-    vps_ip   = ensure_config(config, "vps_ip", "51.254.138.196")
-    vps_name = ensure_config(config, "vps_name", "vps-5dc72e2c.vps.ovh.net")
-    user     = ensure_config(config, "vps_user", "ubuntu")
-    domain   = ensure_config(config, "domain_name", "thearchitect.dev")
-    image_id = config.get("image_id") or "ubuntu-24.04" # Default image
-
-    # 2. Infrastructure Layer
-    vps_resource = None
-    if config.get_bool("hard_rebuild") or False:
-        pulumi.log.warn("🚨 HARD REBUILD triggered. Reinstalling OS...")
-        vps_resource = rebuild_vps(vps_name, image_id)
-
-    if config.get_bool("dns") or False:
-        manage_dns_records(domain, vps_ip)
-
-    # 3. System Layer (SSH)
-    # If we rebuild, the bootstrap must wait for the OS to be ready
-    system_setup = bootstrap_vps_system(vps_name, user, depend_on_resource=vps_resource)
-
-    # 4. Application Layer (K8s)
-    kubeconfig = config.require_secret("kubeconfig")
-    k8s_provider = k8s.Provider("vps-k8s-provider",
-        kubeconfig=kubeconfig,
-        opts=pulumi.ResourceOptions(depends_on=[system_setup])
-    )
-
-    deploy_kubernetes_resources(k8s_provider, "latest")
-
-    # 5. Exports
-    pulumi.export("vps_host", vps_name)
-    pulumi.export("deployment_url", f"http://{domain}")
+    # Exports
+    pulumi.export("vps_ip", vps_ip)
+    pulumi.export("endpoint", f"http://{cfg.domain}")
 
 if __name__ == "__main__":
     main()
