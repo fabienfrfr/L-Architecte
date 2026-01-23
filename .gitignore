@@ -23,6 +23,7 @@ temp
 versions/*/
 devbox.lock
 .devpod-internal
+/.devbox
 
 # Infra
 .pulumi/

@@ -71,7 +71,19 @@ infra-auth: ## Setup Pulumi secrets for OVH API (Interactive)
 	@echo "✅ Pulumi secrets configured in $(INFRA_DIR)/Pulumi.dev.yaml"
 
 infra-reinstall: ## 🚀 FULL REINSTALL: Trigger OVH Reinstall + System + App
-	$(PULUMI_CMD) up -c setup_infra=true -c setup_system=true -c deploy_app=true --yes
+	$(PULUMI_CMD) up \
+		-c setup_infra=true \
+		-c setup_system=true \
+		-c deploy_app=true \
+		-c force_reinstall=true \
+		--yes
+
+reset-pulumi: ## ☢️ FACTORY RESET: Wipe Pulumi state and re-init
+	@echo "⚠️ Deleting Pulumi stack $(STACK_NAME)..."
+	$(PULUMI_CMD) stack rm $(STACK_NAME) --force --yes || true
+	$(PULUMI_CMD) stack init $(STACK_NAME)
+	@echo "👉 Now run 'make infra-auth' to re-inject your secrets."
+
 
 ##@ Maintenance
 clean: ## Remove python caches and temporary files

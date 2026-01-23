@@ -68,7 +68,7 @@ install_docker() {
 install_k3s() {
     if ! command -v k3s &> /dev/null; then
         log_info "Installing K3s..."
-        curl -sfL https://get.k3s.io | sh -
+        curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
     else
         log_info "K3s is already installed."
     fi
@@ -98,6 +98,7 @@ case "$1" in
     
     vps)
         log_info "Initializing VPS Production Node..."
+        install_docker
         install_k3s
         log_success "VPS setup complete."
         ;;
