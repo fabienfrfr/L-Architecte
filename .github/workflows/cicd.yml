@@ -1,4 +1,4 @@
-name: CI-Pipeline
+name: CICD-Pipeline
 
 on:
   push:
@@ -32,6 +32,18 @@ jobs:
 
       - name: Run Integration Tests
         run: devbox run test-ci
+
+      - name: Deploy Infrastructure & App
+        if: github.ref == 'refs/heads/main' && success()
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
+          OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
+          OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
+          OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
+        run: |
+          devbox run pulumi config set --secret kubeconfig "${{ secrets.KUBECONFIG_VPS }}" -C infra
+          devbox run infra-up
 
       - name: Debug on Failure
         if: failure()

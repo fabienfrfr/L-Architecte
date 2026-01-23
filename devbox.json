@@ -1,31 +1,26 @@
 {
   "packages": [
-    // --- Core Runtimes & Toolchains ---
     "python@3.13",
-    "uv@latest",          // Fast Python package manager
-    "openjdk@17",        // Required for specific Java-based tools or agents
+    "uv@latest",
+    "openjdk@17",
 
-    // --- Container & Orchestration ---
-    "k3d@latest",         // Local Kubernetes clusters (for Dev/CI)
-    "kubectl@latest",     // Kubernetes CLI
-    "kubernetes-helm@latest", 
-    "skaffold@latest",    // Continuous development for Kubernetes
-    
-    // --- Cloud Infrastructure ---
-    "pulumi@latest",      // Infrastructure as Code (essential for your VPS setup)
+    "k3d@latest",
+    "kubectl@latest",
+    "kubernetes-helm@latest",
+    "skaffold@latest",
 
-    // --- System Utilities ---
+    "pulumi@latest",
+
     "git@latest",
     "curl@latest",
-    "rsync@latest",       // Crucial for file sync between Local and VPS
-    "gnumake@latest",     // Makefile support
-    "fuser@latest",       // Required for your "up" script to clear ports
+    "rsync@latest",
+    "gnumake@latest",
+    "psmisc@latest",
 
-    // --- Shell & Quality of Life ---
     "zsh@latest",
     "oh-my-zsh@latest",
-    "ruff@latest",        // Fast Python linter/formatter
-    "jq@latest"           // CLI JSON processor (mandatory for K8s manifest parsing)
+    "ruff@latest",
+    "jq@latest"
   ],
   "shell": {
     "init_hook": [
@@ -33,28 +28,20 @@
       "echo 'Type \"devbox run\" to see available scripts'"
     ],
     "scripts": {
-      // Setup the local environment and the k3d cluster
       "set": "make install && make cluster",
-
-      // Launch development loop with automated port forwarding and cleanup
       "up": "fuser -k 8080/tcp || true && skaffold dev --port-forward --tail",
-
-      // CI/CD Validation: Wait for deployments and execute test suite
       "test-ci": [
         "kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s",
         "kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s",
         "kubectl exec -n agentic-architect deployments/architect -- pytest tests/"
       ],
-
-      // Troubleshooting: Extract logs and cluster state during CI failure
       "debug-ci": [
         "kubectl get pods -A",
         "kubectl get events -n agentic-architect --sort-by='.lastTimestamp'",
         "kubectl logs -n agentic-architect -l app=architect --tail=100"
       ],
-
-      // VPS Management: Helper to sync and check production node
-      "vps-status": "kubectl --kubeconfig ~/.kube/config-vps get nodes"
+      "infra-up": "make infra-deploy",
+      "infra-preview": "make infra-plan"
     }
   }
 }
