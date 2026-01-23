@@ -57,6 +57,11 @@ cluster: ## Create local k3d cluster with port forwarding
 			--wait; \
 	fi
 
+##@ Release
+release: ## 🚢 Build and Push images to GHCR
+	@chmod +x scripts/release-ghcr.sh
+	./scripts/release-ghcr.sh
+
 ##@ (Pulumi) Infrastructure & Deployment
 
 infra-auth: ## Setup Pulumi secrets for OVH API (Interactive)
