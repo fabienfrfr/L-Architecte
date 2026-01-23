@@ -126,7 +126,7 @@ def main():
     vps_name = ensure_config(config, "vps_name", "vps-5dc72e2c.vps.ovh.net")
     user     = ensure_config(config, "vps_user", "ubuntu")
     domain   = ensure_config(config, "domain_name", "thearchitect.dev")
-    image_id = config.get("image_id") or "ubuntu-22.04" # Default image
+    image_id = config.get("image_id") or "ubuntu-24.04" # Default image
 
     # 2. Infrastructure Layer
     vps_resource = None
