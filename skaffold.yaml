@@ -5,6 +5,8 @@ metadata:
 build:
   local:
     push: false
+  tagPolicy:
+    gitCommit: {}
   artifacts:
     - image: agentic-architect
       context: .

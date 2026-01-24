@@ -8,6 +8,7 @@
     "kubectl@latest",
     "kubernetes-helm@latest",
     "skaffold@latest",
+    "k9s@latest",
 
     "pulumi@latest",
 

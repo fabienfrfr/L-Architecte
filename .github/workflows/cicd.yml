@@ -50,12 +50,16 @@ jobs:
       - name: Build and Publish Artifacts to GHCR
         if: github.ref == 'refs/heads/main' && success()
         run: |
-          devbox run skaffold build \
-            --tag-policy=gitCommit \
-            --additional-tag=latest \
-            --push=true \
-            --default-repo=ghcr.io/${{ github.repository_owner }} \
-            --file-output=build.json
+          export SKAFFOLD_DEFAULT_REPO=ghcr.io/${{ github.repository_owner }}
+          
+          # Build & Push with SHA tag (Skaffold)
+          devbox run skaffold build --push=true --file-output=build.json
+          
+          # Tag & Push to :latest (Docker + jq)
+          jq -r '.builds[] | .tag' build.json | xargs -I {} sh -c '
+            TAG_LATEST=$(echo {} | cut -d: -f1):latest
+            docker tag {} $TAG_LATEST && docker push $TAG_LATEST
+          '
 
       - name: Deploy Infrastructure (pulumi + k3s) & App
         if: github.ref == 'refs/heads/main' && success()
