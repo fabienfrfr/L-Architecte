@@ -7,10 +7,11 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  test-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write
 
     steps:
       - name: Checkout Code
@@ -37,6 +38,24 @@ jobs:
 
       - name: Run Integration Tests
         run: devbox run test-ci
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/main' && success()
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Publish Artifacts to GHCR
+        if: github.ref == 'refs/heads/main' && success()
+        run: |
+          devbox run skaffold build \
+            --tag-policy=gitCommit \
+            --additional-tag=latest \
+            --push=true \
+            --default-repo=ghcr.io/${{ github.repository_owner }} \
+            --file-output=build.json
 
       - name: Deploy Infrastructure & App
         if: github.ref == 'refs/heads/main' && success()

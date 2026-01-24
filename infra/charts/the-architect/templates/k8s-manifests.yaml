@@ -18,10 +18,12 @@ spec:
       labels:
         app: ollama
     spec:
+      imagePullSecrets:
+        - name: ghcr-auth
       containers:
         - name: ollama
           image: {{ .Values.ollama.image }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Always" }}
           ports:
             - containerPort: 11434
           readinessProbe:
@@ -114,10 +116,12 @@ spec:
       labels:
         app: architect
     spec:
+      imagePullSecrets:
+        - name: ghcr-auth
       containers:
         - name: agentic-architect
           image: {{ .Values.architect.image }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Always" }}
           workingDir: /app
           env:
             - name: ENV

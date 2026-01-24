@@ -23,6 +23,7 @@ deploy:
   helm:
     releases:
       - name: the-architect
+        createNamespace: true
         chartPath: infra/charts/the-architect
         valuesFiles:
           - infra/charts/the-architect/values.yaml
