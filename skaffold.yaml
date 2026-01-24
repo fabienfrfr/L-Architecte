@@ -20,10 +20,10 @@ build:
         dockerfile: infra/Ollama.Dockerfile
 
 deploy:
-  namespace: agentic-architect
   helm:
     releases:
       - name: the-architect
+        namespace: agentic-architect
         createNamespace: true
         chartPath: infra/charts/the-architect
         valuesFiles:
