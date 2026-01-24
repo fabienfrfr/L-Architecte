@@ -20,8 +20,8 @@ build:
         dockerfile: infra/Ollama.Dockerfile
 
 deploy:
+  namespace: agentic-architect
   helm:
-    namespace: agentic-architect
     releases:
       - name: the-architect
         createNamespace: true
