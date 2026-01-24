@@ -79,6 +79,14 @@ infra-reinstall: ## 🚀 FULL REINSTALL: Trigger OVH Reinstall + System + App
 		-c force_reinstall=true \
 		--yes
 
+infra-deploy:
+	$(PULUMI_CMD) up \
+		-c setup_infra=false \
+		-c setup_system=false \
+		-c deploy_app=true \
+		-c force_reinstall=false \
+		--yes
+
 reset-pulumi: ## ☢️ FACTORY RESET: Wipe Pulumi state and re-init
 	@echo "⚠️ Deleting Pulumi stack $(STACK_NAME)..."
 	$(PULUMI_CMD) stack rm $(STACK_NAME) --force --yes || true

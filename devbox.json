@@ -41,8 +41,7 @@
         "kubectl get events -n agentic-architect --sort-by='.lastTimestamp'",
         "kubectl logs -n agentic-architect -l app=architect --tail=100"
       ],
-      "infra-up": "make infra-deploy",
-      "infra-preview": "make infra-plan"
-    }
+      "infra-up": "make infra-deploy"
+      }
   }
 }

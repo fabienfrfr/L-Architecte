@@ -61,22 +61,29 @@ jobs:
             docker tag {} $TAG_LATEST && docker push $TAG_LATEST
           '
 
-      - name: Deploy Infrastructure (pulumi + k3s) & App
+      - name: Fetch Kubeconfig and Deploy
         if: github.ref == 'refs/heads/main' && success()
-        continue-on-error: true
         env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
-          OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
-          OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
-          OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          if [ "${{ secrets.PULUMI_ACCESS_TOKEN }}" == "" ]; then
-            echo "### ⚠️ Skipping Deployment: Secrets are not configured." >> $GITHUB_STEP_SUMMARY
-            exit 0
-          fi
-          devbox run pulumi config set --secret kubeconfig "${{ secrets.KUBECONFIG_VPS }}" -C infra
-          devbox run infra-up
+          # 1. Setup SSH agent to connect to VPS
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H thearchitect.dev >> ~/.ssh/known_hosts
+
+          # 2. Fetch the fresh Kubeconfig directly from VPS
+          # We use sed to replace 127.0.0.1 with the actual domain on the fly
+          ssh ubuntu@thearchitect.dev "sudo cat /etc/rancher/k3s/k3s.yaml" | \
+          sed "s/127.0.0.1/thearchitect.dev/g" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+          # 3. Deploy your two images
+          IMAGE_ARCHITECT="ghcr.io/${{ github.repository_owner }}/agentic-architect:latest"
+          devbox run kubectl set image deployment/architect architect=$IMAGE_ARCHITECT -n agentic-architect
+          
+          # 4. Final Restart
+          devbox run kubectl rollout restart deployment -n agentic-architect
 
       - name: Debug on Failure
         if: failure()

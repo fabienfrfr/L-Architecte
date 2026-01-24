@@ -12,6 +12,7 @@ import ovh as ovh_sdk
 from pulumi.dynamic import Resource, ResourceProvider, CreateResult
 from pulumi_command import remote
 import pulumi_kubernetes as k8s
+from pulumi_kubernetes.apiextensions import CustomResource
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -136,90 +137,102 @@ def provision_system(vps_ip: str, cfg: ArchitectConfig, deps: List[pulumi.Resour
     )
 
 # --- 4. Deployment Logic ---
-def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Resource]):
+def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[remote.Command]):
+    """ Orchestrates the deployment of the AgenticArchitect stack on K3s. """
     if not cfg.should_deploy:
+        logger.info("⏩ Skipping application deployment as per configuration.")
         return None
 
-    logger.info("🚢 Deploying Application Stack...")
+    logger.info("🚢 Orchestrating Application Stack Deployment...")
 
-    # 1. Retrieve Kubeconfig (Original SED logic preserved)
-    kubeconfig_cmd = remote.Command("get-kubeconfig",
+    # 1. Kubeconfig Acquisition & Provider Initialization
+    kubeconfig_fetch = remote.Command(
+        "fetch-kubeconfig",
         connection=remote.ConnectionArgs(
-            host=vps_ip,
-            user=cfg.vps_user,
+            host=vps_ip, 
+            user=cfg.vps_user, 
             agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
         ),
-        create=f"""sudo cat /etc/rancher/k3s/k3s.yaml | \
-         sed 's/127.0.0.1/{vps_ip}/g'""",
-        triggers=[cfg.force_key], 
+        create=f"sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/{vps_ip}/g'",
+        triggers=[cfg.force_key],
         opts=pulumi.ResourceOptions(depends_on=[dependency] if dependency else [])
     )
 
-    # 2. K8s Provider
-    k3s_provider = k8s.Provider("k3s-provider",
-        kubeconfig=kubeconfig_cmd.stdout,
-        enable_server_side_apply=True,
-        delete_unreachable=True,
-        kube_client_settings=k8s.KubeClientSettingsArgs(
-            timeout=10,
-        ),
-        opts=pulumi.ResourceOptions(
-            depends_on=[kubeconfig_cmd]
-        )
+    k3s_provider = k8s.Provider(
+        "k3s-cluster-provider",
+        kubeconfig=kubeconfig_fetch.stdout,
+        enable_server_side_apply=True
     )
 
-    ## meilleurs solution pour traefik à trouver
-    traefik_values = textwrap.dedent("""\
-        apiVersion: helm.cattle.io/v1
-        kind: HelmChartConfig
-        metadata:
-          name: traefik
-          namespace: kube-system
-        spec:
-          valuesContent: |-
-            additionalArguments:
-              - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-              - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-              - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-              - "--certificatesresolvers.myresolver.acme.email=fabien.furfaro@gmail.com"
-              - "--certificatesresolvers.myresolver.acme.storage=/var/lib/rancher/k3s/storage/acme.json"
-    """)
-
-    encoded_traefik = base64.b64encode(traefik_values.encode('utf-8')).decode('utf-8')
-
-    traefik_config = remote.Command("traefik-ssl-setup",
-        connection=remote.ConnectionArgs(
-            host=vps_ip,
-            user=cfg.vps_user,
-            agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
-        ),
-        create=f"echo '{encoded_traefik}' | base64 -d | sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml",
-        opts=pulumi.ResourceOptions(depends_on=[k3s_provider])
+    # 2. Network Layer: Traefik Global Configuration - ACME (Let's Encrypt)
+    traefik_network_config = k8s.yaml.ConfigFile(
+        "traefik-network-config",
+        file="traefik-vps-config.yaml",
+        opts=pulumi.ResourceOptions(provider=k3s_provider)
     )
 
-    # 3. Helm Release (Restored FileAsset and exact paths)
-    return k8s.helm.v3.Release("the-architect-release",
+    # 3. Application Layer: Helm Chart Deployment (Ingress is disabled in Helm.)
+    app_stack_release = k8s.helm.v3.Release(
+        "the-architect-app-stack",
         k8s.helm.v3.ReleaseArgs(
             chart="../infra/charts/the-architect",
             namespace="agentic-architect",
             create_namespace=True,
             value_yaml_files=[
-                pulumi.FileAsset("../infra/charts/the-architect/values.yaml"),
-                pulumi.FileAsset("../infra/charts/the-architect/values-vps.yaml")
-            ],
+                pulumi.FileAsset("../infra/charts/the-architect/values.yaml")
+                ],
             values={
-                "force_update": cfg.force_key, # Added to trigger Helm rollouts
+                "force_update": cfg.force_key,
                 "ollama": {"image": "ghcr.io/fabienfrfr/custom-ollama-gemma:latest"},
                 "architect": {"image": "ghcr.io/fabienfrfr/agentic-architect:latest"},
-                "ingress": {"enabled": True, "host": "thearchitect.dev"}
+                "ingress": {"enabled": False}  # Handled by Pulumi for better control
             }
         ),
         opts=pulumi.ResourceOptions(
-            provider=k3s_provider,
+            provider=k3s_provider, 
             replace_on_changes=["values"],
-            depends_on=[traefik_config]
-            )
+            depends_on=[traefik_network_config]
+        )
     )
+
+    # 4. Exposure Layer: Typed Ingress for TheArchitect
+    app_snippet = k8s.networking.v1.Ingress(
+        "the-architect-ingress",
+        metadata={
+            "namespace": "agentic-architect",
+            "annotations": {
+                "kubernetes.io/ingress.class": "traefik",
+                "traefik.ingress.kubernetes.io/router.entrypoints": "websecure",
+                "traefik.ingress.kubernetes.io/router.tls.certresolver": "myresolver",
+            },
+        },
+        spec=k8s.networking.v1.IngressSpecArgs(
+            rules=[k8s.networking.v1.IngressRuleArgs(
+                host="thearchitect.dev",
+                http=k8s.networking.v1.HTTPIngressRuleValueArgs(
+                    paths=[k8s.networking.v1.HTTPIngressPathArgs(
+                        path="/",
+                        path_type="Prefix",
+                        backend=k8s.networking.v1.IngressBackendArgs(
+                            service=k8s.networking.v1.IngressServiceBackendArgs(
+                                name="architect-service",
+                                port=k8s.networking.v1.ServiceBackendPortArgs(number=8080)
+                            )
+                        )
+                    )]
+                )
+            )],
+            tls=[k8s.networking.v1.IngressTLSArgs(
+                hosts=["thearchitect.dev"],
+                secret_name="thearchitect-tls-cert"
+            )]
+        ),
+        opts=pulumi.ResourceOptions(
+            provider=k3s_provider, 
+            depends_on=[app_stack_release]
+        )
+    )
+    return app_snippet
 
 # --- 5. Main Orchestration ---
 def main():
