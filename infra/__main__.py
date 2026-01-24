@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 import base64
 import logging
@@ -89,6 +90,13 @@ class VPSRebuildProvider(ResourceProvider):
             if status == 'error': raise Exception("OVH Task Failed")
             time.sleep(10)
 
+        # Clean local ssh
+        try:
+            domain = "thearchitect.dev"
+            subprocess.run(["ssh-keygen", "-R", domain], capture_output=True)
+        except Exception as e:
+            logger.warning(f"⚠️ Could not clean known_hosts: {e}")
+
         return CreateResult(id_=f"rebuild-{task_id}", outs=props)
 
 class VPSRebuild(Resource):
@@ -133,6 +141,18 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
 
     logger.info("🚢 Deploying Application Stack...")
 
+    # if force_reinstall
+    reset_check = remote.Command("k3s-ready-check",
+        connection=remote.ConnectionArgs(
+            host=vps_ip,
+            user=cfg.vps_user,
+            agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
+        ),
+        create="until [ -f /etc/rancher/k3s/k3s.yaml ]; do sleep 5; done && sudo chmod 644 /etc/rancher/k3s/k3s.yaml",
+        triggers=[cfg.force_key],
+        opts=pulumi.ResourceOptions(depends_on=[dependency] if dependency else [])
+    )
+
     # 1. Retrieve Kubeconfig (Original SED logic preserved)
     kubeconfig_cmd = remote.Command("get-kubeconfig",
         connection=remote.ConnectionArgs(
@@ -141,13 +161,22 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
             agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
         ),
         create=f"sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/{vps_ip}/g'",
-        opts=pulumi.ResourceOptions(depends_on=[dependency] if dependency else [])
+        triggers=[cfg.force_key], 
+        opts=pulumi.ResourceOptions(depends_on=[reset_check])
     )
 
     # 2. K8s Provider
     k3s_provider = k8s.Provider("k3s-provider",
         kubeconfig=kubeconfig_cmd.stdout,
-        opts=pulumi.ResourceOptions(depends_on=[kubeconfig_cmd])
+        enable_server_side_apply=True,
+        delete_unreachable=True,
+        kube_client_settings=k8s.KubeClientSettingsArgs(
+            timeout=10
+        ),
+        opts=pulumi.ResourceOptions(
+            depends_on=[kubeconfig_cmd],
+            delete_before_replace=True 
+        )
     )
 
     # 3. Helm Release (Restored FileAsset and exact paths)
@@ -167,7 +196,12 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
                 "ingress": {"enabled": True, "host": "thearchitect.dev"}
             }
         ),
-        opts=pulumi.ResourceOptions(provider=k3s_provider)
+        opts=pulumi.ResourceOptions(
+            provider=k3s_provider,
+            replace_on_changes=["values"],
+            delete_before_replace=True,
+            retain_on_delete=True
+        )
     )
 
 # --- 5. Main Orchestration ---
@@ -186,7 +220,11 @@ def main():
             "version": cfg.ubuntu_version,
             "ssh_key": cfg.public_ssh_key,
             "force_trigger": cfg.force_key,
-        })
+        }, opts=pulumi.ResourceOptions(
+            replace_on_changes=["force_trigger"],
+            delete_before_replace=True
+            )
+        )
         infra_deps.append(rebuild)
 
     # Layer 2: System (K3s/Tools)
