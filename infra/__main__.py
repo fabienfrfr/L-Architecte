@@ -1,4 +1,5 @@
 import os
+import textwrap
 import subprocess
 import time
 import base64
@@ -141,18 +142,6 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
 
     logger.info("🚢 Deploying Application Stack...")
 
-    # if force_reinstall
-    reset_check = remote.Command("k3s-ready-check",
-        connection=remote.ConnectionArgs(
-            host=vps_ip,
-            user=cfg.vps_user,
-            agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
-        ),
-        create="until [ -f /etc/rancher/k3s/k3s.yaml ]; do sleep 5; done && sudo chmod 644 /etc/rancher/k3s/k3s.yaml",
-        triggers=[cfg.force_key],
-        opts=pulumi.ResourceOptions(depends_on=[dependency] if dependency else [])
-    )
-
     # 1. Retrieve Kubeconfig (Original SED logic preserved)
     kubeconfig_cmd = remote.Command("get-kubeconfig",
         connection=remote.ConnectionArgs(
@@ -160,9 +149,10 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
             user=cfg.vps_user,
             agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
         ),
-        create=f"sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/{vps_ip}/g'",
+        create=f"""sudo cat /etc/rancher/k3s/k3s.yaml | \
+         sed 's/127.0.0.1/{vps_ip}/g'""",
         triggers=[cfg.force_key], 
-        opts=pulumi.ResourceOptions(depends_on=[reset_check])
+        opts=pulumi.ResourceOptions(depends_on=[dependency] if dependency else [])
     )
 
     # 2. K8s Provider
@@ -171,12 +161,40 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
         enable_server_side_apply=True,
         delete_unreachable=True,
         kube_client_settings=k8s.KubeClientSettingsArgs(
-            timeout=10
+            timeout=10,
         ),
         opts=pulumi.ResourceOptions(
-            depends_on=[kubeconfig_cmd],
-            delete_before_replace=True 
+            depends_on=[kubeconfig_cmd]
         )
+    )
+
+    ## meilleurs solution pour traefik à trouver
+    traefik_values = textwrap.dedent("""\
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChartConfig
+        metadata:
+          name: traefik
+          namespace: kube-system
+        spec:
+          valuesContent: |-
+            additionalArguments:
+              - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+              - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+              - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+              - "--certificatesresolvers.myresolver.acme.email=fabien.furfaro@gmail.com"
+              - "--certificatesresolvers.myresolver.acme.storage=/var/lib/rancher/k3s/storage/acme.json"
+    """)
+
+    encoded_traefik = base64.b64encode(traefik_values.encode('utf-8')).decode('utf-8')
+
+    traefik_config = remote.Command("traefik-ssl-setup",
+        connection=remote.ConnectionArgs(
+            host=vps_ip,
+            user=cfg.vps_user,
+            agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
+        ),
+        create=f"echo '{encoded_traefik}' | base64 -d | sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml",
+        opts=pulumi.ResourceOptions(depends_on=[k3s_provider])
     )
 
     # 3. Helm Release (Restored FileAsset and exact paths)
@@ -199,9 +217,8 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[pulumi.Re
         opts=pulumi.ResourceOptions(
             provider=k3s_provider,
             replace_on_changes=["values"],
-            delete_before_replace=True,
-            retain_on_delete=True
-        )
+            depends_on=[traefik_config]
+            )
     )
 
 # --- 5. Main Orchestration ---
@@ -221,8 +238,7 @@ def main():
             "ssh_key": cfg.public_ssh_key,
             "force_trigger": cfg.force_key,
         }, opts=pulumi.ResourceOptions(
-            replace_on_changes=["force_trigger"],
-            delete_before_replace=True
+            replace_on_changes=["force_trigger"]
             )
         )
         infra_deps.append(rebuild)

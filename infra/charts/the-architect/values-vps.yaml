@@ -11,3 +11,4 @@ ingress:
   tls:
     - hosts:
         - thearchitect.dev
+      secretName: thearchitect-tls-cert

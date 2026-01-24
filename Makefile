@@ -57,11 +57,6 @@ cluster: ## Create local k3d cluster with port forwarding
 			--wait; \
 	fi
 
-##@ Release
-release: ## 🚢 Build and Push images to GHCR
-	@chmod +x scripts/release-ghcr.sh
-	./scripts/release-ghcr.sh
-
 ##@ (Pulumi) Infrastructure & Deployment
 
 infra-auth: ## Setup Pulumi secrets for OVH API (Interactive)
@@ -76,6 +71,7 @@ infra-auth: ## Setup Pulumi secrets for OVH API (Interactive)
 	@echo "✅ Pulumi secrets configured in $(INFRA_DIR)/Pulumi.dev.yaml"
 
 infra-reinstall: ## 🚀 FULL REINSTALL: Trigger OVH Reinstall + System + App
+	-$(PULUMI_CMD) state delete --all --yes
 	$(PULUMI_CMD) up \
 		-c setup_infra=true \
 		-c setup_system=true \
