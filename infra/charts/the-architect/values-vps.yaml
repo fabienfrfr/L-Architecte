@@ -1,3 +1,6 @@
+global:
+  imagePullPolicy: Always
+
 ingress:
   enabled: true
   host: "thearchitect.dev"

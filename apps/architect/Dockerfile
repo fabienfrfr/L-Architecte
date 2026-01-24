@@ -37,5 +37,9 @@ RUN echo '#!/bin/bash\n\
 marimo edit --host 0.0.0.0 --port 2718 --no-token & \n\
 exec python3 -m apps.architect.main' > /entrypoint.sh && chmod +x /entrypoint.sh
 
+# Public container
+LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArchitect"
+LABEL org.opencontainers.image.description="TheArchitect - Agentic Architect Core"
+
 # ENV PYTHON_JIT=1 (if need optimization)
 CMD ["/entrypoint.sh"]

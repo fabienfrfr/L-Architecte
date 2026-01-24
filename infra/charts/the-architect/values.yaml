@@ -2,7 +2,7 @@
 namespace: agentic-architect
 
 global:
-  imagePullPolicy: Always
+  imagePullPolicy: IfNotPresent
 
 ollama:
   image: custom-ollama-gemma

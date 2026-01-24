@@ -9,3 +9,7 @@ RUN nohup bash -c "ollama serve &" && \
     pkill ollama
 
 EXPOSE 11434
+
+# Public container
+LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArchitect"
+LABEL org.opencontainers.image.description="TheArchitect - Ollama with light model included"
