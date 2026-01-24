@@ -21,6 +21,7 @@ build:
 
 deploy:
   helm:
+    namespace: agentic-architect
     releases:
       - name: the-architect
         createNamespace: true
