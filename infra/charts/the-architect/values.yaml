@@ -1,6 +1,9 @@
 # Default Configuration
 namespace: agentic-architect
 
+global:
+  imagePullPolicy: Always
+
 ollama:
   image: custom-ollama-gemma
   cpu: "1"
