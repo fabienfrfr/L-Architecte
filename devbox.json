@@ -31,17 +31,12 @@
     "scripts": {
       "set": "make install && make cluster",
       "up": "fuser -k 8080/tcp || true && skaffold dev --port-forward --tail",
-      "test-ci": [
-        "kubectl wait --for=condition=Ready pod -l app=ollama -n agentic-architect --timeout=600s",
-        "kubectl wait --for=condition=Ready pod -l app=architect -n agentic-architect --timeout=300s",
-        "kubectl exec -n agentic-architect deployments/architect -- pytest tests/"
-      ],
-      "debug-ci": [
-        "kubectl get pods -A",
-        "kubectl get events -n agentic-architect --sort-by='.lastTimestamp'",
-        "kubectl logs -n agentic-architect -l app=architect --tail=100"
-      ],
-      "infra-up": "make infra-deploy"
+      "test-ci": "make test",
+      "ci-clean": "make ci-deep-clean",
+      "ci-build": "skaffold build --push=true --file-output=build.json && make ci-tag-latest",
+      "ci-deploy": "make ci-fetch-kubeconfig && make ci-deploy",
+      "debug-ci": "make debug",
+      "infra-reinstall": "make infra-reinstall"
       }
   }
 }

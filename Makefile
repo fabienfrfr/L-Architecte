@@ -57,6 +57,47 @@ cluster: ## Create local k3d cluster with port forwarding
 			--wait; \
 	fi
 
+test: ## Run integration tests exactly as defined
+	kubectl wait --for=condition=Ready pod -l app=ollama -n $(NAMESPACE) --timeout=600s
+	kubectl wait --for=condition=Ready pod -l app=architect -n $(NAMESPACE) --timeout=300s
+	kubectl exec -n $(NAMESPACE) deployments/architect -- pytest tests/
+
+debug: ## Debug commands exactly as defined
+	kubectl get pods -A
+	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp'
+	kubectl logs -n $(NAMESPACE) -l app=architect --tail=100
+
+##@ Github CI
+
+ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
+	sudo rm -rf /usr/share/dotnet
+	sudo rm -rf /usr/local/lib/android
+	sudo rm -rf /opt/ghc
+	sudo rm -rf /usr/local/share/boost
+	sudo rm -rf /usr/local/lib/node_modules
+	sudo docker image prune -af
+	sudo rm -rf /usr/local/bin/aliyun
+	sudo rm -rf /usr/local/bin/azcopy
+	df -h
+
+ci-tag-latest: ## Tag the images from build.json as latest and push
+	@jq -r '.builds[] | .tag' build.json | xargs -I {} sh -c '\
+		TAG_LATEST=$$(echo {} | cut -d: -f1):latest; \
+		docker tag {} $$TAG_LATEST && docker push $$TAG_LATEST'
+
+ci-fetch-kubeconfig: ## Fetch Kubeconfig from VPS and swap IP
+	@mkdir -p ~/.ssh
+	@ssh-keyscan -H $(DOMAIN) >> ~/.ssh/known_hosts
+	@ssh $(USER)@$(DOMAIN) "sudo cat /etc/rancher/k3s/k3s.yaml" | \
+		sed "s/127.0.0.1/$(DOMAIN)/g" > ~/.kube/config-vps
+	@chmod 600 ~/.kube/config-vps
+
+ci-deploy: ## Update image and restart deployment on VPS
+	$(eval REPO_OWNER ?= $(shell echo $${GITHUB_REPOSITORY_OWNER}))
+	@KUBECONFIG=~/.kube/config-vps kubectl set image deployment/architect \
+		agentic-architect=ghcr.io/$(REPO_OWNER)/agentic-architect:latest -n $(NAMESPACE)
+	@KUBECONFIG=~/.kube/config-vps kubectl rollout restart deployment -n $(NAMESPACE)
+
 ##@ (Pulumi) Infrastructure & Deployment
 
 infra-auth: ## Setup Pulumi secrets for OVH API (Interactive)
@@ -77,14 +118,6 @@ infra-reinstall: ## 🚀 FULL REINSTALL: Trigger OVH Reinstall + System + App
 		-c setup_system=true \
 		-c deploy_app=true \
 		-c force_reinstall=true \
-		--yes
-
-infra-deploy:
-	$(PULUMI_CMD) up \
-		-c setup_infra=false \
-		-c setup_system=false \
-		-c deploy_app=true \
-		-c force_reinstall=false \
 		--yes
 
 reset-pulumi: ## ☢️ FACTORY RESET: Wipe Pulumi state and re-init
