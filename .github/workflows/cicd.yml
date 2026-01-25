@@ -77,15 +77,19 @@ jobs:
           # 2. Fetch the fresh Kubeconfig directly from VPS
           # We use sed to replace 127.0.0.1 with the actual domain on the fly
           ssh ubuntu@thearchitect.dev "sudo cat /etc/rancher/k3s/k3s.yaml" | \
-          sed "s/127.0.0.1/thearchitect.dev/g" > ~/.kube/config
-          chmod 600 ~/.kube/config
+          sed "s/127.0.0.1/thearchitect.dev/g" > ~/.kube/config-vps
+          chmod 600 ~/.kube/config-vps
 
-          # 3. Deploy your two images
+          # 3. Deploy & Restart
           IMAGE_ARCHITECT="ghcr.io/${{ github.repository_owner }}/agentic-architect:latest"
-          devbox run kubectl set image deployment/architect agentic-architect=$IMAGE_ARCHITECT -n agentic-architect
           
-          # 4. Final Restart
-          devbox run kubectl rollout restart deployment -n agentic-architect
+          # export KUBECONFIG=~/.kube/config-vps
+          KUBECONFIG=~/.kube/config-vps devbox run kubectl set image deployment/architect agentic-architect=$IMAGE_ARCHITECT -n agentic-architect
+          KUBECONFIG=~/.kube/config-vps devbox run kubectl rollout restart deployment -n agentic-architect
+
+          # 4. Sanity Check 
+          sleep 5
+          KUBECONFIG=~/.kube/config-vps devbox run kubectl get pods -n agentic-architect -l app=architect -o custom-columns="POD_NAME:.metadata.name,STATUS:.status.phase,AGE:.status.startTime"
 
       - name: Debug on Failure
         if: failure()
