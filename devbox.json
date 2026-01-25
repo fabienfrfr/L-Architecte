@@ -26,10 +26,7 @@
   ],
   "shell": {
     "init_hook": [
-      "echo '🚀 Welcome to AgenticArchitect'",
-      "alias ta='tmux attach -t stack'",
-      "alias tl='tmux ls'",
-      "if [ -z \"$TMUX\" ] && [ \"$(tmux ls 2>/dev/null | grep -c 'stack')\" -eq 1 ] && [ \"$(tmux ls 2>/dev/null | grep 'stack' | grep -v 'attached')\" ]; then tmux attach -t stack; fi"
+      "source ./scripts/dev-init.sh"
     ],
     "scripts": {
       "install": "make install",

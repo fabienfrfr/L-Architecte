@@ -59,7 +59,7 @@
                 "terminal.integrated.profiles.linux": {
                     "devbox-shell": {
                         "path": "devbox",
-                        "args": ["shell"]
+                        "args": ["shell", "--", "zsh"]
                     }
                 },
                 "python.defaultInterpreterPath": "${workspaceFolder}/.devbox/virtenv/python@3.13/bin/python",
