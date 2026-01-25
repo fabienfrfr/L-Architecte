@@ -12,6 +12,7 @@
 
     "pulumi@latest",
 
+    "tmux@latest",
     "git@latest",
     "curl@latest",
     "rsync@latest",
@@ -25,10 +26,14 @@
   ],
   "shell": {
     "init_hook": [
-      "echo '🚀 Welcome to AgenticArchitect Development Shell'",
-      "echo 'Type \"devbox run\" to see available scripts'"
+      "echo '🚀 Welcome to AgenticArchitect'",
+      "alias ta='tmux attach -t stack'",
+      "alias tl='tmux ls'",
+      "if [ -z \"$TMUX\" ] && [ \"$(tmux ls 2>/dev/null | grep -c 'stack')\" -eq 1 ] && [ \"$(tmux ls 2>/dev/null | grep 'stack' | grep -v 'attached')\" ]; then tmux attach -t stack; fi"
     ],
     "scripts": {
+      "install": "make install",
+      "cluster": "make cluster",
       "set": "make install && make cluster",
       "up": "fuser -k 8080/tcp || true && skaffold dev --port-forward --tail",
       "test-ci": "make test",
