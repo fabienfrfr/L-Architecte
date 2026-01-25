@@ -118,14 +118,16 @@ def provision_system(vps_ip: str, cfg: ArchitectConfig, deps: List[pulumi.Resour
         agent_socket_path=os.environ.get("SSH_AUTH_SOCK")
     )
 
+    ## SSH COMMAND
     script_content = cfg.bootstrap_script
     encoded_script = base64.b64encode(script_content.encode('utf-8')).decode('utf-8')
 
-    # Restored your exact secure Base64 deployment logic
+    tls_san_value = f"{vps_ip},thearchitect.dev"
+
     install_cmd = (
         f"echo '{encoded_script}' | base64 -d > /tmp/install.sh && "
         f"chmod +x /tmp/install.sh && "
-        f"sudo bash /tmp/install.sh vps"
+        f"sudo K3S_TLS_SAN='{tls_san_value}' bash /tmp/install.sh vps"
     )
 
     return remote.Command("vps-bootstrap",

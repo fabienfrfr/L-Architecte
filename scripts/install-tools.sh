@@ -67,8 +67,10 @@ install_docker() {
 
 install_k3s() {
     if ! command -v k3s &> /dev/null; then
-        log_info "Installing K3s..."
-        curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+        log_info "Installing K3s with SAN for $K3S_TLS_SAN..."
+        curl -sfL https://get.k3s.io | sh -s - server \
+            --write-kubeconfig-mode 644 \
+            ${K3S_TLS_SAN:+--tls-san="$K3S_TLS_SAN"}
     else
         log_info "K3s is already installed."
     fi
