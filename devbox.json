@@ -26,7 +26,7 @@
   ],
   "shell": {
     "init_hook": [
-      "source ./scripts/dev-init.sh"
+      ". ./scripts/shell-init.sh"
     ],
     "scripts": {
       "install": "make install",
