@@ -14,5 +14,5 @@ jobs:
             - name: Mirror to Codeberg
               uses: pixta-dev/repository-mirroring-action@v1
               with:
-                  target_repo_url: git@codeberg.org:fabienfrfr/AgenticArchitect.git
+                  target_repo_url: git@codeberg.org:fabienfrfr/L-Architecte.git
                   ssh_private_key: ${{ secrets.CODEBERG_SSH_KEY }}

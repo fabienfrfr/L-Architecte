@@ -1,11 +1,11 @@
-# <img src="./docs/architect_face.svg" width="25" alt="Architect Face"> AgenticArchitect
+# <img src="./docs/architect_face.svg" width="25" alt="Architect Face"> L-Architecte
 
-[![Codeberg](https://img.shields.io/badge/Codeberg-2185d0?style=for-the-badge&logo=gitea&logoColor=white)](https://codeberg.org/fabienfrfr/AgenticArchitect)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fabienfrfr/AgenticArchitect)
+[![Codeberg](https://img.shields.io/badge/Codeberg-2185d0?style=for-the-badge&logo=gitea&logoColor=white)](https://codeberg.org/fabienfrfr/L-Architecte)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fabienfrfr/L-Architecte)
 
 > 🚀 **K8s Native & Editor Agnostic:** A fully orchestrated **K3s/K3d** environment. No manual configuration, no complex IDE dependencies. One command to rule them all.
 
-**AgenticArchitect** (or **TheArchitect**) is a local-first multi-agent system designed to transform raw client specifications into production-ready AI and Data solutions.
+**L-Architecte** (or **TheArchitect**) is a local-first multi-agent system designed to transform raw client specifications into production-ready AI and Data solutions.
 
 By leveraging **Stateful Graph Orchestration (LangGraph)** and high-performance local LLMs (like **NVIDIA Nemotron-3**), it automates the entire software development lifecycle (SDLC) from requirements analysis to SOLID code generation.
 
