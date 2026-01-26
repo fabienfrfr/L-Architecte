@@ -7,17 +7,18 @@ global:
 ollama:
   image: custom-ollama-gemma
   cpu: "1"
-  memory: "1Gi"
+  memory: "2Gi"
 
 arangodb:
   image: arangodb/arangodb:3.11
-  storageSize: "1Gi"
+  cpu: "0.2"
+  storageSize: "512Mi"
 
 architect:
   image: agentic-architect
   env: "test"
   cpu: "0.5"
-  memory: "1Gi"
+  memory: "512Mi"
 
 phoenix:
   image: arizephoenix/phoenix:latest
