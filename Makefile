@@ -143,13 +143,14 @@ clean: ## Remove python caches and temporary files
 	@# Remove legacy VS Code Snap environment injections that break devpod/devbox sessions
 	-sed -i '/snap\/code/d' ~/.profile ~/.bashrc ~/.bash_aliases 2>/dev/null
 
-nuke: clean ## ☢️  Wipe EVERYTHING (k3d + docker + volumes)
+nuke: clean ## ☢️  Wipe EVERYTHING (k3d + docker + volumes + process)
 	@echo "Nuking system..."
 	@k3d cluster delete --all || true
 	@docker stop $$(docker ps -aq) 2>/dev/null || true
 	@docker rm $$(docker ps -aq) 2>/dev/null || true
 	@docker volume rm $$(docker volume ls -q) 2>/dev/null || true
 	@docker system prune -af --volumes
+	@pgrep tmux > /dev/null && pkill -9 tmux || true
 	@echo "✅ Reset complete. Clean slate for TheArchitect."
 
 ##@ DevPod in the box
