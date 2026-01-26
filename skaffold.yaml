@@ -17,9 +17,9 @@ build:
           - src: "apps/architect/**/*.py"
             dest: .
     - image: custom-ollama-gemma
-      context: .
+      context: apps/ollama
       docker:
-        dockerfile: infra/Ollama.Dockerfile
+        dockerfile: Dockerfile
 
 deploy:
   helm:
@@ -42,6 +42,12 @@ portForward:
     namespace: agentic-architect
     port: 8080
     localPort: 8080
+  # ArangoDB UI
+  - resourceType: service
+    resourceName: arangodb
+    namespace: agentic-architect
+    port: 8529
+    localPort: 8529
   # Observability
   - resourceType: service
     resourceName: phoenix

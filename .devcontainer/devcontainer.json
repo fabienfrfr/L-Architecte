@@ -10,7 +10,7 @@
     "forwardPorts": [8080, 6006, 2718, 11434],
     "workspaceFolder": "/workspaces/AgenticArchitect",
 
-    // k3s management
+    // k3d local management
     "runArgs": [
         "--add-host=host.docker.internal:host-gateway"
     ],
@@ -31,8 +31,8 @@
     },
 
     // DevBox Command
-    "postCreateCommand": "devbox run cluster && devbox run -- bash scripts/dev-bridge.sh",
-    "postAttachCommand": "devbox run tmux -- new-session -d -s stack 'devbox run up' || echo 'Stack already running'",
+    "postCreateCommand": "devbox run setup && devbox run cluster && devbox run -- bash scripts/dev-bridge.sh",
+    "postAttachCommand": "devbox run tmux new-session -d -s stack 'devbox run up' 2>/dev/null && echo '🚀 Stack session started successfully!' || echo '⚠️ Stack session already exists or failed to start.'",
 
     // IDE
     "customizations": {
@@ -59,7 +59,7 @@
                 "terminal.integrated.profiles.linux": {
                     "devbox-shell": {
                         "path": "devbox",
-                        "args": ["shell", "--", "zsh"]
+                        "args": ["shell"]
                     }
                 },
                 "python.defaultInterpreterPath": "${workspaceFolder}/.devbox/virtenv/python@3.13/bin/python",

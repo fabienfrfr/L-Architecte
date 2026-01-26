@@ -101,7 +101,76 @@ spec:
       port: 4317
       targetPort: 4317
 ---
-# --- 3. THE ARCHITECT ---
+# --- 3. ARANGODB (Knowledge Graph) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arangodb
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arangodb
+  template:
+    metadata:
+      labels:
+        app: arangodb
+    spec:
+      containers:
+        - name: arangodb
+          image: {{ .Values.arangodb.image | default "arangodb/arangodb:3.11" }}
+          env:
+            - name: ARANGO_NO_AUTH
+              value: "1" # Mode dev : authentification désactivée
+          ports:
+            - containerPort: 8529
+          readinessProbe:
+            httpGet:
+              path: /_admin/statistics
+              port: 8529
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+          volumeMounts:
+            - name: arangodb-data
+              mountPath: /var/lib/arangodb3
+      volumes:
+        - name: arangodb-data
+          persistentVolumeClaim:
+            claimName: arangodb-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arangodb
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: arangodb
+  ports:
+    - protocol: TCP
+      port: 8529
+      targetPort: 8529
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arangodb-pvc
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.arangodb.storageSize | default "2Gi" }}
+---
+# --- 4. THE ARCHITECT ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -126,6 +195,8 @@ spec:
           env:
             - name: ENV
               value: {{ .Values.architect.env | quote }}
+            - name: ARANGODB_URL
+              value: "http://arangodb:8529"
             - name: OLLAMA_URL
               value: "http://ollama:11434"
             - name: PHOENIX_URL
@@ -163,7 +234,7 @@ spec:
       port: 2718
       targetPort: 2718
 ---
-# --- 4. THE INGRESS --- (DISABLED)
+# --- BONUS. THE INGRESS --- (DISABLED)
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress

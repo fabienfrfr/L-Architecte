@@ -24,6 +24,7 @@ versions/*/
 devbox.lock
 .devpod-internal
 /.devbox
+/logs
 
 # Infra
 .pulumi/
