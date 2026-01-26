@@ -27,7 +27,7 @@ jobs:
         run: devbox run set
 
       - name: Build and k3d Deploy with Skaffold
-        run: devbox run skaffold run --cache-artifacts=false --status-check=false --port-forward=false --cleanup=false
+        run: devbox run skaffold run --cache-artifacts=false --status-check=false --cleanup=false #--port-forward=false 
 
       - name: Run Integration Tests
         run: devbox run test-ci
