@@ -8,27 +8,19 @@ langgraph
 langchain
 langchain-community
 langchain-ollama
-chromadb
+python-arango
 pydantic-settings
+
+# ETL & NLP
+pypdfium2
+spacy
+rapidfuzz
 
 # Monitoring & Tracing
 arize-phoenix
 opentelemetry-sdk
 opentelemetry-exporter-otlp
 openinference-instrumentation-langchain
-
-# Testing
-pytest
-pytest-env
-pytest-bdd
-pytest-asyncio 
-nest-asyncio
-pytest-dotenv
-
-# Interactive Python
-ipykernel
-jupytext
-marimo
 
 # Data Analysis
 numpy
