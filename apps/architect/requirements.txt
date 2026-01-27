@@ -20,6 +20,7 @@ arize-phoenix
 opentelemetry-sdk
 opentelemetry-exporter-otlp
 openinference-instrumentation-langchain
+debugpy # old
 
 # Data Analysis
 numpy
