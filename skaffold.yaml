@@ -54,11 +54,6 @@ portForward:
     namespace: agentic-architect
     port: 6006
     localPort: 6006
-  # Remote dev (Interactive)
-  - resourceType: service
-    resourceName: architect-service
-    port: 2718
-    localPort: 2718
   # Debug mode
   - resourceType: deployment
     resourceName: architect

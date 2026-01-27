@@ -30,12 +30,7 @@ RUN uv pip install --system --no-cache -r apps/architect/requirements.txt
 COPY . .
 
 # Metadata
-EXPOSE 8080 2718
-
-# Marimo & App script
-RUN echo '#!/bin/bash\n\
-marimo edit --host 0.0.0.0 --port 2718 --no-token & \n\
-exec python3 -m apps.architect.main' > /entrypoint.sh && chmod +x /entrypoint.sh
+EXPOSE 8080
 
 # Public container
 LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArchitect"

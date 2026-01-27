@@ -1,66 +1,61 @@
+import os
 import pypdfium2 as pdfium
-import spacy
+from fastembed import TextEmbedding
 from arango import ArangoClient
-
-# Load lightweight French/English model
-# python -m spacy download fr_core_news_sm
-nlp = spacy.load("fr_core_news_sm", disable=["lemmatizer", "attribute_ruler"])
+import numpy as np
 
 class ETLMapper:
-    def __init__(self, db_auth):
+    """
+    Lightweight Semantic ETL for TheArchitect.
+    Uses ONNX-based embeddings for entity recognition.
+    """
+    def __init__(self):
+        # Extremely light model (~15MB on disk)
+        self.model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        
         self.client = ArangoClient(hosts='http://localhost:8529')
         self.db = self.client.db('TheArchitect', username='root', password='password')
+        
+        # Reference embeddings for our categories
+        self.categories = {
+            "software": "software programming tool library",
+            "infrastructure": "cloud server network hardware",
+            "protocol": "communication protocol interface"
+        }
+        self._category_vectors = {k: list(self.model.embed([v]))[0] for k, v in self.categories.items()}
 
-    # --- [E]XTRACT ---
     def _extract(self, file_path):
-        """Extracts raw text from PDF using pypdfium2 (very fast)."""
         doc = pdfium.PdfDocument(file_path)
-        pages = []
-        for i in range(len(doc)):
-            page = doc.get_page(i)
-            text = page.get_textpage().get_text_range()
-            pages.append({"page_num": i + 1, "content": text})
-        return pages
+        return [{"page_num": i+1, "content": p.get_textpage().get_text_range()} for i, p in enumerate(doc)]
 
-    # --- [T]RANSFORM ---
     def _transform(self, raw_pages):
-        """Cleans text and extracts technical entities via spaCy."""
-        structured_data = []
+        data = []
         for page in raw_pages:
-            content = page["content"]
-            # Basic cleaning
-            clean_text = " ".join(content.split())
+            text = " ".join(page["content"].split())
+            words = list(set(re.findall(r'\b\w{3,}\b', text))) # Extraction simple des mots candidats
             
-            # NER (Entity Recognition)
-            doc = nlp(clean_text)
-            entities = [{"text": ent.text, "label": ent.label_} 
-                        for ent in doc.ents if ent.label_ in ["ORG", "PRODUCT", "MISC"]]
+            entities = []
+            if words:
+                # Embed each candidate word
+                word_embeddings = list(self.model.embed(words))
+                
+                for i, word_vec in enumerate(word_embeddings):
+                    for label, cat_vec in self._category_vectors.items():
+                        # Simple cosine similarity
+                        score = np.dot(word_vec, cat_vec) / (np.linalg.norm(word_vec) * np.linalg.norm(cat_vec))
+                        if score > 0.8: # Threshold for semantic match
+                            entities.append({"text": words[i], "label": label})
             
-            structured_data.append({
-                "text": clean_text,
-                "metadata": {"page": page["page_num"]},
-                "entities": entities
-            })
-        return structured_data
+            data.append({"text": text, "page": page["page_num"], "entities": entities})
+        return data
 
-    # --- [L]OAD ---
     def _load(self, data, doc_name):
-        """Loads chunks and entities into ArangoDB collections."""
-        # 1. Store Chunks
-        self.db.collection('Chunks').import_bulk(
-            [{"text": d['text'], "doc": doc_name, "page": d['metadata']['page']} for d in data]
-        )
-        # 2. Store Entities (Simplified logic)
+        # Persistence logic remains the same
+        chunks = [{"text": d['text'], "doc": doc_name, "page": d['page']} for d in data]
+        self.db.collection('Chunks').import_bulk(chunks)
+        
         for d in data:
             for ent in d['entities']:
-                key = ent['text'].replace(" ", "_").lower()
+                key = ent['text'].lower()
                 if not self.db.collection('Entities').has(key):
-                    self.db.collection('Entities').insert({"_key": key, "name": ent['text']})
-
-    def run(self, file_path):
-        """The main entry point for the ETL process."""
-        print(f"🚀 Starting ETL for {file_path}")
-        raw = self._extract(file_path)
-        transformed = self._transform(raw)
-        self._load(transformed, os.path.basename(file_path))
-        print("✅ ArangoDB Graph Updated.")
+                    self.db.collection('Entities').insert({"_key": key, "name": ent['text'], "type": ent['label']})

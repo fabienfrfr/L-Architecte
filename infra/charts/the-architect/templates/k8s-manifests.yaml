@@ -210,7 +210,6 @@ spec:
               add: ["SYS_PTRACE"]
           ports:
             - containerPort: 8080
-            - containerPort: 2718
           resources:
             requests:
               memory: {{ .Values.architect.memory | quote }}
@@ -229,10 +228,6 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: 8080
-    - name: devpod
-      protocol: TCP
-      port: 2718
-      targetPort: 2718
 ---
 # --- BONUS. THE INGRESS --- (DISABLED)
 {{- if .Values.ingress.enabled }}

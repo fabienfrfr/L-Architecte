@@ -13,8 +13,7 @@ pydantic-settings
 
 # ETL & NLP
 pypdfium2
-spacy
-rapidfuzz
+fastembed
 
 # Monitoring & Tracing
 arize-phoenix

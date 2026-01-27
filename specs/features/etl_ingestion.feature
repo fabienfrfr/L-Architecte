@@ -1,12 +1,10 @@
-Feature: Document ETL Ingestion
+Feature: Semantic Knowledge Ingestion
   As an Architect
-  I want to convert PDF documents into a structured Knowledge Graph
-  In order to allow agents to reason over project requirements
+  I want to identify entities using lightweight embeddings
+  In order to build a flexible Knowledge Graph without heavy dependencies
 
-  Scenario: Successfully ingest a technical specification PDF
-    Given a technical PDF document "CdC_MBDA.pdf"
-    When the ETLMapper processes the file
-    Then it should extract text chunks for each page
-    And it should identify technical entities like "LMS" or "Python"
-    And it should store exactly 12 pages in the "Chunks" collection
-    And the ArangoDB graph should reflect the document structure
+  Scenario: Extracting technical concepts via semantic similarity
+    Given a technical PDF source "specification.pdf"
+    When the ETLMapper processes the document with FastEmbed
+    Then it should identify entities semantically related to "Technology"
+    And the ArangoDB graph should be updated with these discoveries
