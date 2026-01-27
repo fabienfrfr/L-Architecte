@@ -37,4 +37,4 @@ LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArch
 LABEL org.opencontainers.image.description="TheArchitect - Agentic Architect Core"
 
 # ENV PYTHON_JIT=1 (if need optimization)
-CMD ["/entrypoint.sh"]
+CMD ["python3", "-m", "apps.architect.main"]
