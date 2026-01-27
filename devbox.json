@@ -7,7 +7,7 @@
     "pkg-config@latest",
     "cairo@latest",
     "gobject-introspection@latest",
-    "glib@latest"
+    "glib@latest",
 
     "k3d@latest",
     "kubectl@latest",
