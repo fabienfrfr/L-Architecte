@@ -2,6 +2,11 @@ import json
 from pytest_bdd import scenario, given, when, then, parsers
 from apps.architect.agents.pm import PMAgent
 
+import httpx
+
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
 
 @scenario(
     "../specs/features/pm.feature",

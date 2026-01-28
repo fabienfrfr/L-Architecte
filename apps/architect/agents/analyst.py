@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from typing import List
 from pydantic import BaseModel
 
 class CadrageReport(BaseModel):

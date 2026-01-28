@@ -1,4 +1,3 @@
-import os
 import pypdfium2 as pdfium
 from fastembed import TextEmbedding
 from arango import ArangoClient

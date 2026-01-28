@@ -78,7 +78,7 @@ make install && make cluster && make setup-dev && skaffold dev
 | **K3d / K3s** | Orchestration | Industrial scale for local agents. |
 | **Skaffold** | Deployment | Zero-wait development loop. |
 | **UV** | Python Manager | 10x faster than pip/poetry. |
-| **Ollama** | LLM Engine | Total data sovereignty with **Gemma 2:270M**. |
+| **Ollama** | LLM Engine | Total data sovereignty with **Gemma 3:270M**. |
 | **Ruff** | Code Quality | Blazing fast SOLID enforcement. |
 
 ## 🔍 Service Access

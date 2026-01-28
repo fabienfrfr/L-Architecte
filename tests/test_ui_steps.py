@@ -3,6 +3,12 @@ import asyncio
 from pytest_bdd import scenario, given, when, then, parsers
 from apps.architect.controller import ArchitectController
 
+import httpx
+
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
+
 
 @scenario("../specs/features/ui_workflow.feature", "Successful SMART validation")
 def test_ui_logic_flow():

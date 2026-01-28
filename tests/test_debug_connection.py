@@ -4,6 +4,13 @@ from contextlib import closing
 
 import pytest
 
+import httpx
+
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
+
+
 @pytest.mark.skipif(os.getenv("KUBERNETES_SERVICE_HOST") is not None, 
                     reason="Debug port check only for local development")
 def test_debugpy_port_is_reachable():

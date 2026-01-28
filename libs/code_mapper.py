@@ -12,7 +12,6 @@ import os
 import json
 import argparse
 import pathspec
-from typing import List
 
 # --- Default Configurations ---
 DEFAULT_OUTPUT = os.path.join("libs", "project_structure.json")

@@ -4,6 +4,10 @@ import yaml
 import httpx
 import socket
 
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
+
 
 # Function to load specifications
 def get_specs():

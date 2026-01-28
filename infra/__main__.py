@@ -1,5 +1,4 @@
 import os
-import textwrap
 import subprocess
 import time
 import base64
@@ -12,7 +11,6 @@ import ovh as ovh_sdk
 from pulumi.dynamic import Resource, ResourceProvider, CreateResult
 from pulumi_command import remote
 import pulumi_kubernetes as k8s
-from pulumi_kubernetes.apiextensions import CustomResource
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

@@ -19,7 +19,6 @@ def _(mo):
 
 @app.cell
 def _():
-    import asyncio
     import json
     import nest_asyncio
     from apps.architect.core.llm import get_llm
@@ -46,7 +45,7 @@ def _(get_llm):
 def _(json, llm):
     async def run_pm_analysis(user_input: str):
         """Capability 1: Check SMART criteria and identify gaps."""
-        print(f"⏳ [Step 1] Analyzing Requirements...")
+        print("⏳ [Step 1] Analyzing Requirements...")
 
         system_prompt = (
             "Role: Strict Project Manager.\n"
@@ -63,7 +62,7 @@ def _(json, llm):
 
     async def generate_hypotheses_specs(analysis_result: dict):
         """Capability 2: Take the gaps and propose technical solutions."""
-        print(f"⏳ [Step 2] Filling Gaps with Hypotheses...")
+        print("⏳ [Step 2] Filling Gaps with Hypotheses...")
 
         system_prompt = (
             "Role: Technical Architect.\n"

@@ -4,6 +4,11 @@ import os
 import yaml
 
 
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
+
+
 # Function to load specifications
 def get_specs():
     with open("specs/functional/req_ollama.yaml", "r", encoding="utf-8") as f:

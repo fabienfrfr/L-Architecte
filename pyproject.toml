@@ -38,6 +38,7 @@ packages = ["apps/architect"]
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "ipykernel>=7.1.0",
     "jupytext>=1.19.1",
     "marimo>=0.19.6",
@@ -47,4 +48,16 @@ dev = [
     "pytest-bdd>=8.1.0",
     "pytest-dotenv>=0.5.2",
     "pytest-env>=1.2.0",
+    "pyyaml>=6.0.3",
+    "ruff>=0.14.14",
+]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+markers = [
+    "bdd: Behavioral Driven Development tests",
+    "integration: Tests requiring the full cluster"
 ]

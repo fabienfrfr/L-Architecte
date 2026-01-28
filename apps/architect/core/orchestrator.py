@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TypedDict, List, Optional, Dict, Any
+from typing import TypedDict, Optional, Dict, Any
 from langgraph.graph import StateGraph, START, END
 
 # --- Standardized Imports ---
@@ -40,7 +40,7 @@ def pm_node(state: AgentState) -> Dict[str, Any]:
         # Step 2: Adaptive Logic
         # If not SMART, we use the agent's second method to fill gaps
         if not data.get("is_smart", False):
-            logging.info(f"Requirements not SMART. Calling hypotheses generation...")
+            logging.info("Requirements not SMART. Calling hypotheses generation...")
             hypotheses_res = agent.fill_gaps_with_hypotheses(data)
 
             # Integration of hypotheses into the charter data

@@ -38,7 +38,6 @@ setup-env: ## Initialize Python environment and create project files if missing
 	@echo "📦 Preparing Python environment..."
 	@uv venv .venv --python 3.13
 	@export UV_LINK_MODE=copy && uv sync
-	@uv add uv
 	@echo "✅ Environment ready"
 
 .env: ## Create default environment file
@@ -66,10 +65,13 @@ cluster: ## Create local k3d cluster avec API fixe
 		k3d kubeconfig get $(CLUSTER_NAME) > ~/.kube/config; \
 	fi
 
-test: ## Run integration tests exactly as defined
+wait: ## Run integration tests exactly as defined
 	kubectl wait --for=condition=Ready pod -l app=ollama -n $(NAMESPACE) --timeout=600s
 	kubectl wait --for=condition=Ready pod -l app=architect -n $(NAMESPACE) --timeout=300s
-	kubectl exec -n $(NAMESPACE) deployments/architect -- pytest tests/
+
+lint-fix: ## Répare automatiquement les erreurs de formatage/lint
+	@uv run ruff check . --fix --exit-zero
+	@uv run ruff format .
 
 debug: ## Debug commands exactly as defined
 	kubectl get pods -A
@@ -77,6 +79,12 @@ debug: ## Debug commands exactly as defined
 	kubectl logs -n $(NAMESPACE) -l app=architect --tail=100
 
 ##@ Github CI
+
+ci-test: ## Run integration tests
+	@echo "🧪 Running CI Pipeline..."
+	@export APP_URL=http://localhost:8080; \
+	export OLLAMA_URL=http://localhost:11434; \
+	uv run pytest tests/
 
 ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
 	sudo rm -rf /usr/share/dotnet

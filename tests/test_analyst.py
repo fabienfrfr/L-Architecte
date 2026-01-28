@@ -1,6 +1,11 @@
 import pytest
 from apps.architect.agents.analyst import AnalystAgent
 
+import httpx
+
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
 
 @pytest.mark.bdd
 class TestAnalystAgent:

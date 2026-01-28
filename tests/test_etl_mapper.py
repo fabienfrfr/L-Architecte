@@ -2,6 +2,12 @@ import pytest
 from pytest_bdd import scenario, given, when, then, parsers
 from apps.architect.ingestion.etl_mapper import ETLMapper
 
+import httpx
+
+def test_status(client: httpx.Client):
+    """Check if the UI is reachable."""
+    assert client.get("/api/status").status_code == 200
+
 @scenario('../features/ingestion.feature', 'Extracting technical concepts via semantic similarity')
 def test_semantic_pipeline():
     pass

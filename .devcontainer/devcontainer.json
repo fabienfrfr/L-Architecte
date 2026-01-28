@@ -30,7 +30,7 @@
         "KUBECONFIG": "/home/devbox/.kube/config"
     },
 
-    // DevBox Command
+    // DevBox Command (DooD bridge)
     "postCreateCommand": "devbox run setup && devbox run cluster && devbox run -- bash scripts/dev-bridge.sh",
     "postAttachCommand": "devbox run tmux has-session -t stack 2>/dev/null || devbox run tmux new-session -d -s stack 'devbox run up'",
 
