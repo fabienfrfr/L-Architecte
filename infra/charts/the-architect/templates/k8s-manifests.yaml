@@ -168,7 +168,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.arangodb.storageSize | default "2Gi" }}
+      storage: {{ .Values.arangodb.storageSize | default "1Gi" }}
 ---
 # --- 4. THE ARCHITECT ---
 apiVersion: apps/v1

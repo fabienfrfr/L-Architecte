@@ -54,14 +54,16 @@ vps-auth: ## Generate SSH key if missing and copy it to VPS
 	@ssh-copy-id ubuntu@thearchitect.dev
 
 ##@ Kubernetes
-cluster: ## Create local k3d cluster avec API fixe
+cluster: ## Create local k3d cluster + API fixed
 	@if k3d cluster list | grep -q $(CLUSTER_NAME); then \
 		echo "Cluster $(CLUSTER_NAME) exists..."; \
 	else \
 		k3d cluster create $(CLUSTER_NAME) \
 			--port "8888:80@loadbalancer" \
 			--api-port 6443 \
-			--k3s-arg "--kubelet-arg=eviction-hard=nodefs.available<1%@server:*" \
+			--k3s-arg "--kubelet-arg=eviction-hard=imagefs.available<1%,nodefs.available<1%@server:*" \
+			--k3s-arg "--kubelet-arg=eviction-pressure-transition-period=0s@server:*" \
+			--k3s-arg "--kubelet-arg=enforce-node-allocatable=@server:*" \
 			--wait; \
 		k3d kubeconfig get $(CLUSTER_NAME) > ~/.kube/config; \
 	fi
