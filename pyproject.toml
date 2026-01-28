@@ -61,8 +61,12 @@ asyncio_default_fixture_loop_scope = "session"
 env_files = [".env"]
 env = [
     "ENV=test",
-    "PYTHONPATH=."
+    "PYTHONPATH=.",
+    "PHOENIX_PORT=6006",
+    "PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317",
+    "OLLAMA_URL=http://localhost:11434"
 ]
+
 
 markers = [
     "bdd: Behavioral Driven Development tests",
