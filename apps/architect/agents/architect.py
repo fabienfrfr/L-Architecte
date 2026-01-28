@@ -1,11 +1,13 @@
 from typing import Dict
 from pydantic import BaseModel
 
+
 class ADR(BaseModel):
     title: str
     context: str
     decision: str
     consequences: list
+
 
 class ArchitectAgent:
     def generate_c4_diagram(self, requirements: Dict) -> str:
@@ -18,8 +20,9 @@ class ArchitectAgent:
             title="Use ChromaDB",
             context="Need local RAG",
             decision="Deploy ChromaDB in Docker",
-            consequences=["Pros: Local", "Cons: No HA"]
+            consequences=["Pros: Local", "Cons: No HA"],
         )
+
 
 ARCHITECT_CORE_RULES = """
 CORE ARCHITECTURAL RULES:

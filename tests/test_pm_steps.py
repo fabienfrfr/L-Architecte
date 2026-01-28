@@ -1,12 +1,17 @@
 import json
+import pytest
 from pytest_bdd import scenario, given, when, then, parsers
 from apps.architect.agents.pm import PMAgent
 
 import httpx
+from conftest import app_offline
 
+
+@pytest.mark.skipif(app_offline, reason="Apps don't listen 8080 port")
 def test_status(client: httpx.Client):
     """Check if the UI is reachable."""
     assert client.get("/api/status").status_code == 200
+
 
 @scenario(
     "../specs/features/pm.feature",

@@ -5,14 +5,19 @@ from contextlib import closing
 import pytest
 
 import httpx
+from conftest import app_offline
 
+
+@pytest.mark.skipif(app_offline, reason="Apps don't listen 8080 port")
 def test_status(client: httpx.Client):
     """Check if the UI is reachable."""
     assert client.get("/api/status").status_code == 200
 
 
-@pytest.mark.skipif(os.getenv("KUBERNETES_SERVICE_HOST") is not None, 
-                    reason="Debug port check only for local development")
+@pytest.mark.skipif(
+    os.getenv("KUBERNETES_SERVICE_HOST") is not None,
+    reason="Debug port check only for local development",
+)
 def test_debugpy_port_is_reachable():
     """
     Verify that the debugpy port is accessible via the local port-forward.
@@ -25,7 +30,7 @@ def test_debugpy_port_is_reachable():
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         sock.settimeout(timeout)
         connection_result = sock.connect_ex((host, port))
-        
+
         assert connection_result == 0, (
             f"Debug port {port} is not reachable on {host}. "
             "Ensure 'skaffold dev' or 'kubectl port-forward' is running."

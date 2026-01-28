@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.2"
+__generated_with = "0.19.6"
 app = marimo.App()
 
 
@@ -50,12 +50,14 @@ def _(json, llm):
         system_prompt = (
             "Role: Strict Project Manager.\n"
             "Analyze if input is SMART. If not, set is_smart: false and list gaps.\n"
-            "Return ONLY JSON: {\"is_smart\": bool, \"gaps\": [], \"project_name\": \"...\"}"
+            'Return ONLY JSON: {"is_smart": bool, "gaps": [], "project_name": "..."}'
         )
 
         try:
             response = await llm.ainvoke(f"{system_prompt}\n\nInput: {user_input}")
-            content = response.content if hasattr(response, 'content') else str(response)
+            content = (
+                response.content if hasattr(response, "content") else str(response)
+            )
             return json.loads(content)
         except Exception as e:
             return {"error": str(e)}
@@ -67,12 +69,16 @@ def _(json, llm):
         system_prompt = (
             "Role: Technical Architect.\n"
             "Based on the identified gaps, propose 3 technical hypotheses to unblock the project.\n"
-            "Return ONLY JSON: {\"hypotheses\": [\"tech stack assumption\", ...]}"
+            'Return ONLY JSON: {"hypotheses": ["tech stack assumption", ...]}'
         )
 
         try:
-            response = await llm.ainvoke(f"{system_prompt}\n\nAnalysis: {json.dumps(analysis_result)}")
-            content = response.content if hasattr(response, 'content') else str(response)
+            response = await llm.ainvoke(
+                f"{system_prompt}\n\nAnalysis: {json.dumps(analysis_result)}"
+            )
+            content = (
+                response.content if hasattr(response, "content") else str(response)
+            )
             return json.loads(content)
         except Exception as e:
             return {"error": str(e)}
@@ -102,7 +108,7 @@ async def _(generate_hypotheses_specs, run_pm_analysis):
         improvements = await generate_hypotheses_specs(analysis)
 
         print("\n[TheArchitect Adaptive Response]")
-        for h in improvements.get('hypotheses', []):
+        for h in improvements.get("hypotheses", []):
             print(f" 💡 Hypothesis: {h}")
     else:
         print("✅ Project is SMART and ready for Analyst stage.")
@@ -119,7 +125,7 @@ def _(mo):
 
 @app.cell
 def _(json):
-    from apps.architect.agents.pm import PMAgent 
+    from apps.architect.agents.pm import PMAgent
 
     def test_real_agent():
         """
@@ -127,14 +133,14 @@ def _(json):
         TODO: Refactor PMAgent to include multi-method support (check_requirements + generate_hypotheses)
         based on the playground tests above. --> add in orchestrator this cycle also.
         """
-        print("\n" + "-"*10 + " Official Source Test " + "-"*10)
+        print("\n" + "-" * 10 + " Official Source Test " + "-" * 10)
         agent = PMAgent()
 
         # Current single-method implementation
         result = agent.check_requirements("I want a library management API in Python")
 
         print("\n--- Official Agent Output ---")
-        if hasattr(result, 'content'):
+        if hasattr(result, "content"):
             print(result.content)
         else:
             print(json.dumps(result, indent=2))

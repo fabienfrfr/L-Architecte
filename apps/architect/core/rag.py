@@ -1,5 +1,6 @@
 from chromadb import Client
 
+
 class ChromaDBManager:
     def __init__(self, host="chromadb", port=8000):
         self.client = Client(host=host, port=port)

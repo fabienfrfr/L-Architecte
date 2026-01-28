@@ -29,9 +29,15 @@
     "ruff@latest",
     "jq@latest"
   ],
+  "env": {
+    "DEVBOX_SKIP_VENV_CONFIG": "1",
+    "UV_PROJECT_ENVIRONMENT": ".venv"
+  },
   "shell": {
     "init_hook": [
       "echo '🚀 Welcome to AgenticArchitect'",
+      "uv sync --quiet",
+      ". .venv/bin/activate",
       "alias ta='tmux attach -t stack'",
       "alias tl='tmux ls'",
       "if [ -z \"$TMUX\" ] && [ \"$(tmux ls 2>/dev/null | grep -c 'stack')\" -eq 1 ] && [ \"$(tmux ls 2>/dev/null | grep 'stack' | grep -v 'attached')\" ]; then tmux attach -t stack; fi"

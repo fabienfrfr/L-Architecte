@@ -3,7 +3,10 @@ import os
 import yaml
 import httpx
 import socket
+from conftest import app_offline
 
+
+@pytest.mark.skipif(app_offline, reason="Apps don't listen 8080 port")
 def test_status(client: httpx.Client):
     """Check if the UI is reachable."""
     assert client.get("/api/status").status_code == 200
@@ -29,9 +32,9 @@ async def test_requirement_phoenix_env_vars_exist(obs_env):
     target = obs_env["specs"]["must_have"]["environment"]
     missing_keys = [key for key in target["keys"] if not os.getenv(key)]
 
-    assert (
-        not missing_keys
-    ), f"Requirement {target['id']} failed: Missing environment variables: {', '.join(missing_keys)}"
+    assert not missing_keys, (
+        f"Requirement {target['id']} failed: Missing environment variables: {', '.join(missing_keys)}"
+    )
 
 
 @pytest.mark.asyncio
@@ -46,9 +49,9 @@ async def test_requirement_phoenix_connection(obs_env):
         try:
             # Checking the Phoenix UI/API health
             response = await client.get(f"{url}/customer-artifact/healthz", timeout=5.0)
-            assert (
-                response.status_code == 200
-            ), f"Requirement {target['id']} failed: Server returned {response.status_code}"
+            assert response.status_code == 200, (
+                f"Requirement {target['id']} failed: Server returned {response.status_code}"
+            )
         except Exception as e:
             pytest.fail(
                 f"Infrastructure error: Could not connect to Phoenix at {url}. "

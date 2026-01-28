@@ -1,6 +1,7 @@
 import debugpy
 import os
 
+
 def setup_debugger():
     if os.environ.get("ENABLE_DEBUGGER") != "true":
         return

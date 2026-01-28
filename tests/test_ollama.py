@@ -3,7 +3,10 @@ import httpx
 import os
 import yaml
 
+from conftest import app_offline
 
+
+@pytest.mark.skipif(app_offline, reason="Apps don't listen 8080 port")
 def test_status(client: httpx.Client):
     """Check if the UI is reachable."""
     assert client.get("/api/status").status_code == 200
@@ -35,9 +38,9 @@ async def test_requirement_ollama_server_reachable(ollama_env):
     async with httpx.AsyncClient(timeout=2.0) as client:
         try:
             response = await client.get(url)
-            assert (
-                response.status_code == target["expected_status"]
-            ), f"Requirement {target['id']} failed: Server returned {response.status_code}"
+            assert response.status_code == target["expected_status"], (
+                f"Requirement {target['id']} failed: Server returned {response.status_code}"
+            )
         except (httpx.ConnectError, httpx.ConnectTimeout):
             pytest.fail(f"Infrastructure error: Service unreachable at {url}")
 
@@ -59,9 +62,9 @@ async def test_requirement_ollama_model_present(ollama_env):
             models_data = response.json().get("models", [])
             local_names = [m["name"] for m in models_data]
 
-            assert any(
-                model_name in name for name in local_names
-            ), f"Requirement {target['id']} failed: Model {model_name} not found. Please run 'ollama pull {model_name}'"
+            assert any(model_name in name for name in local_names), (
+                f"Requirement {target['id']} failed: Model {model_name} not found. Please run 'ollama pull {model_name}'"
+            )
 
         except (httpx.ConnectError, httpx.TimeoutException) as e:
             pytest.fail(f"Infrastructure error during model check: {str(e)}")

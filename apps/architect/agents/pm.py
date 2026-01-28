@@ -31,6 +31,8 @@ class PMAgent:
         return chain.invoke({"points": validated_data})
 
     def fill_gaps_with_hypotheses(self, report: dict):
-        prompt = ChatPromptTemplate.from_template("Generate hypotheses for these gaps: {gaps}")
+        prompt = ChatPromptTemplate.from_template(
+            "Generate hypotheses for these gaps: {gaps}"
+        )
         chain = prompt | self.llm
         return chain.invoke({"gaps": report.get("gaps", [])})

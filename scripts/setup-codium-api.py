@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 VSCodium Configuration Utility for AgenticArchitect (TheArchitect).
-This script enables Proposed APIs for specific extensions required for 
+This script enables Proposed APIs for specific extensions required for
 remote development, testing (Pytest), and debugging within Kubernetes pods.
 """
 
@@ -12,21 +12,20 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration: Extensions to authorize
-REQUIRED_APIS = [
-    "3timeslazy.vscodium-devpodcontainers",
-    "jeanp413.open-remote-ssh"
-]
+REQUIRED_APIS = ["3timeslazy.vscodium-devpodcontainers", "jeanp413.open-remote-ssh"]
+
 
 def clean_jsonc(content):
     """Remove C-style comments (// and /* */) from JSON string."""
     pattern = r"//.*|/\*[\s\S]*?\*/"
     return re.sub(pattern, "", content)
 
+
 def setup_vscodium_configs():
     # 1. Locate argv.json for VSCodium
     # Path follows the standard Linux location for VSCodium OSS
     argv_path = Path.home() / ".vscode-oss" / "argv.json"
-    
+
     print(f"[*] Target file: {argv_path}")
 
     if not argv_path.exists():
@@ -45,7 +44,7 @@ def setup_vscodium_configs():
     try:
         with open(argv_path, "r") as f:
             raw_content = f.read()
-        
+
         # Remove comments before parsing
         clean_content = clean_jsonc(raw_content)
         data = json.loads(clean_content) if clean_content.strip() else {}
@@ -58,7 +57,7 @@ def setup_vscodium_configs():
     current_apis = data.get("enable-proposed-api", [])
     if not isinstance(current_apis, list):
         current_apis = []
-    
+
     # Merge lists without duplicates
     updated_apis = list(set(current_apis + REQUIRED_APIS))
     data["enable-proposed-api"] = updated_apis
@@ -66,9 +65,10 @@ def setup_vscodium_configs():
     # 5. Write back to disk
     with open(argv_path, "w") as f:
         json.dump(data, f, indent=4)
-    
+
     print("[+] Successfully updated enable-proposed-api.")
     print("[+] Configuration complete. Please restart VSCodium.")
+
 
 if __name__ == "__main__":
     try:

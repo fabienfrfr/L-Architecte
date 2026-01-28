@@ -17,11 +17,13 @@ import pathspec
 DEFAULT_OUTPUT = os.path.join("libs", "project_structure.json")
 DEFAULT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 # --- Utility Functions ---
 def read_file_content(file_path: str) -> str:
     """Reads the content of a file."""
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
+
 
 def write_file(file_path: str, content: str) -> None:
     """Writes a file, creating parent directories if necessary."""
@@ -30,17 +32,26 @@ def write_file(file_path: str, content: str) -> None:
         f.write(content)
     print(f"📄 File created: {file_path}")
 
+
 # --- Gitignore Logic ---
 def get_gitignore_spec(root_dir: str) -> pathspec.PathSpec:
     """Loads .gitignore patterns and returns a PathSpec object for strict matching."""
-    patterns = [".git/", "__pycache__/", "*.pyc", ".venv/", ".DS_Store", "node_modules/"]
+    patterns = [
+        ".git/",
+        "__pycache__/",
+        "*.pyc",
+        ".venv/",
+        ".DS_Store",
+        "node_modules/",
+    ]
     gitignore_path = os.path.join(root_dir, ".gitignore")
 
     if os.path.exists(gitignore_path):
         with open(gitignore_path, "r", encoding="utf-8") as f:
             patterns.extend(f.readlines())
-    
-    return pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+
+    return pathspec.PathSpec.from_lines("gitwildmatch", patterns)
+
 
 # --- JSON → Code ---
 def generate_code_from_json(json_path: str) -> None:
@@ -57,6 +68,7 @@ def generate_code_from_json(json_path: str) -> None:
 
     print("✅ Code generated successfully!")
 
+
 # --- Code → JSON ---
 def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
     """
@@ -65,7 +77,7 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
     """
     files = []
     spec = get_gitignore_spec(root_dir)
-    
+
     # Files to always exclude regardless of .gitignore
     internal_excludes = {".gitignore", "LICENSE", os.path.basename(output_json_path)}
 
@@ -74,7 +86,7 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
 
     for dirpath, dirnames, filenames in os.walk(root_dir):
         relative_dir = os.path.relpath(dirpath, root_dir)
-        
+
         # Prune ignored directories to optimize scan speed
         if relative_dir != ".":
             if spec.match_file(relative_dir):
@@ -84,7 +96,7 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
         for filename in filenames:
             if filename in internal_excludes:
                 continue
-                
+
             file_path = os.path.join(dirpath, filename)
             relative_path = os.path.relpath(file_path, root_dir)
 
@@ -111,10 +123,13 @@ def generate_json_from_code(root_dir: str, output_json_path: str) -> None:
 
     print(f"✅ JSON generated successfully with {len(files)} files.")
 
+
 # --- CLI ---
 def main():
     parser = argparse.ArgumentParser(description="Code Mapper: Sync code and JSON.")
-    parser.add_argument("--from-json", nargs="?", const=DEFAULT_OUTPUT, help="JSON to Code.")
+    parser.add_argument(
+        "--from-json", nargs="?", const=DEFAULT_OUTPUT, help="JSON to Code."
+    )
     parser.add_argument("--to-json", nargs="*", help="Code to JSON [ROOT] [OUTPUT].")
 
     args = parser.parse_args()
@@ -127,6 +142,7 @@ def main():
         generate_json_from_code(root, output)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()
