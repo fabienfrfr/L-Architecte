@@ -61,6 +61,7 @@ cluster: ## Create local k3d cluster avec API fixe
 		k3d cluster create $(CLUSTER_NAME) \
 			--port "8888:80@loadbalancer" \
 			--api-port 6443 \
+			--k3s-arg "--kubelet-arg=eviction-hard=nodefs.available<1%@server:*" \
 			--wait; \
 		k3d kubeconfig get $(CLUSTER_NAME) > ~/.kube/config; \
 	fi
@@ -74,13 +75,14 @@ lint-fix: ## Répare automatiquement les erreurs de formatage/lint
 	@uv run ruff format .
 
 debug: ## Debug commands exactly as defined
+	df -h
 	kubectl get pods -A
 	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp'
 	kubectl logs -n $(NAMESPACE) -l app=architect --tail=100
 
 ##@ Github CI
 
-ci-test: ## Run integration tests
+ci-test: wait ## Run integration tests
 	@echo "🧪 Running CI Pipeline..."
 	@export APP_URL=http://localhost:8080; \
 	export OLLAMA_URL=http://localhost:11434; \
