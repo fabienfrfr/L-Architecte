@@ -10,5 +10,5 @@ must_have:
   connection:
     id: "CONN-01"
     description: "The Phoenix UI and OTLP collector must be reachable."
-    target_url: "http://phoenix:6006"
-    otlp_host: "phoenix" #
+    target_url: "http://localhost:6006" # localhost or phoenix ?
+    otlp_host: "localhost" # localhost or phoenix ?
