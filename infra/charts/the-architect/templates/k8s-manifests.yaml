@@ -23,7 +23,7 @@ spec:
       containers:
         - name: ollama
           image: {{ .Values.ollama.image }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Always" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
           ports:
             - containerPort: 11434
           readinessProbe:
@@ -190,7 +190,7 @@ spec:
       containers:
         - name: agentic-architect
           image: {{ .Values.architect.image }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Always" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
           workingDir: /app
           env:
             - name: ENV

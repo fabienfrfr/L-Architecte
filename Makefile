@@ -7,6 +7,12 @@ USER         = ubuntu
 DETECTED_MODE := $(shell [ -f /.dockerenv ] && echo "devcontainer" || [ "$$CI" = "true" ] && echo "ci" || echo "local")
 MODE ?= $(DETECTED_MODE)
 
+# --- K8s / K3D Specifics ---
+K3S_DISK_ARGS = --k3s-arg "--kubelet-arg=eviction-hard=imagefs.available<1%,nodefs.available<1%@server:*" \
+                --k3s-arg "--kubelet-arg=eviction-pressure-transition-period=0s@server:*"
+
+K3S_NODE_ARGS = --k3s-arg "--kubelet-arg=image-pull-progress-deadline=2m@server:*"
+
 # Infrastructure
 INFRA_DIR    = infra
 PULUMI_ENV   = PULUMI_CONFIG_PASSPHRASE=""
@@ -61,9 +67,8 @@ cluster: ## Create local k3d cluster + API fixed
 		k3d cluster create $(CLUSTER_NAME) \
 			--port "8888:80@loadbalancer" \
 			--api-port 6443 \
-			--k3s-arg "--kubelet-arg=eviction-hard=imagefs.available<1%,nodefs.available<1%@server:*" \
-			--k3s-arg "--kubelet-arg=eviction-pressure-transition-period=0s@server:*" \
-			--k3s-arg "--kubelet-arg=enforce-node-allocatable=@server:*" \
+			$(K3S_DISK_ARGS) \
+			$(K3S_NODE_ARGS) \
 			--wait; \
 		k3d kubeconfig get $(CLUSTER_NAME) > ~/.kube/config; \
 	fi
