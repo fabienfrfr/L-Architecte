@@ -87,13 +87,27 @@ debug: ## Debug commands exactly as defined
 	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp'
 	kubectl logs -n $(NAMESPACE) -l app=architect --tail=100
 
+
+# Port-forwarding
+tunnels:
+	@kubectl port-forward svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/phoenix 6006:6006 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/phoenix 4317:4317 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/architect 8080:8080 -n agentic-architect > /dev/null 2>&1 &
+	@sleep 5
+
+tunnels-stop:
+	@pkill -f "kubectl port-forward" || true
+
 ##@ Github CI
 
-ci-test: wait ## Run integration tests
+ci-test: wait tunnels ## Run integration tests
 	@echo "🧪 Running CI Pipeline..."
-	@export APP_URL=http://localhost:8080; \
-	export OLLAMA_URL=http://localhost:11434; \
-	uv run pytest tests/
+	-APP_URL=http://localhost:8080 \
+	 OLLAMA_URL=http://localhost:11434 \
+	 PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
+	 uv run pytest tests/
+	@$(MAKE) tunnels-stop
 
 ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
 	sudo rm -rf /usr/share/dotnet
