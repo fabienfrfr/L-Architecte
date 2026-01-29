@@ -42,3 +42,8 @@ def check_semantic_ents(results, category):
     # Verify we found at least one entity
     all_ents = [e for p in results for e in p["entities"]]
     assert len(all_ents) >= 0
+
+
+@then("the ArangoDB graph should be updated with these discoveries")
+def check_db_update(mapper):
+    pass

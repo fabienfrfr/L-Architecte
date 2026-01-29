@@ -96,7 +96,9 @@ tunnels:
 	@kubectl port-forward --address 127.0.0.1 svc/phoenix 4317:4317 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward --address 127.0.0.1 svc/architect 8080:8080 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward --address 127.0.0.1 svc/architect 5678:5678 -n agentic-architect > /dev/null 2>&1 &
-	@sleep 10
+	@echo "⏳ Waiting for ports to open..."
+	@timeout 30s bash -c 'until nc -z localhost 8080 && nc -z localhost 5678; do sleep 1; done' || (echo "❌ Tunnels failed to start" && exit 1)
+	@echo "✅ Tunnels ready"
 
 tunnels-stop:
 	echo "Stopping tunnels..."
