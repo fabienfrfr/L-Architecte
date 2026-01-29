@@ -1,5 +1,5 @@
 # UI & Software Window
-PyGObject==3.44.1
+#PyGObject==3.44.1
 nicegui
 pywebview
 

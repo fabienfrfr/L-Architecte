@@ -4,13 +4,13 @@ FROM python:3.13-slim-bookworm
 RUN apt-get update && apt-get install -y \
     build-essential \
     pkg-config \
-    ninja-build \
+    #ninja-build \
     python3-dev \
-    libgirepository1.0-dev \
-    gobject-introspection \
-    libglib2.0-dev \
-    libcairo2-dev \
-    gir1.2-gtk-3.0 \
+    #libgirepository1.0-dev \
+    #gobject-introspection \
+    #libglib2.0-dev \
+    #libcairo2-dev \
+    #gir1.2-gtk-3.0 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
