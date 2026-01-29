@@ -90,15 +90,13 @@ debug: ## Debug commands exactly as defined
 
 # Port-forwarding
 tunnels:
-	@echo "🌐 Starting Tunnels..."
-	@kubectl port-forward --address 127.0.0.1 svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward --address 127.0.0.1 svc/phoenix 6006:6006 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward --address 127.0.0.1 svc/phoenix 4317:4317 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward --address 127.0.0.1 svc/architect 8080:8080 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward --address 127.0.0.1 svc/architect 5678:5678 -n agentic-architect > /dev/null 2>&1 &
-	@echo "⏳ Waiting for ports to open..."
-	@timeout 30s bash -c 'until nc -z localhost 8080 && nc -z localhost 5678; do sleep 1; done' || (echo "❌ Tunnels failed to start" && exit 1)
-	@echo "✅ Tunnels ready"
+	@echo "🌐 Opening Tunnels..."
+	-@pkill -f "kubectl port-forward" || true
+	@kubectl port-forward -n agentic-architect svc/architect 8080:8080 5678:5678 --address 127.0.0.1 > /dev/null 2>&1 &
+	@kubectl port-forward -n agentic-architect svc/arangodb 8529:8529 --address 127.0.0.1 > /dev/null 2>&1 &
+	@kubectl port-forward -n agentic-architect svc/ollama 11434:11434 --address 127.0.0.1 > /dev/null 2>&1 &
+	@timeout 20s bash -c 'until (echo > /dev/tcp/127.0.0.1/8080) 2>/dev/null; do sleep 1; done'
+	@echo "✅ All ports mapped on 127.0.0.1"
 
 tunnels-stop:
 	echo "Stopping tunnels..."
