@@ -90,25 +90,31 @@ debug: ## Debug commands exactly as defined
 
 # Port-forwarding
 tunnels:
-	@kubectl port-forward svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward svc/phoenix 6006:6006 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward svc/phoenix 4317:4317 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward svc/architect 8080:8080 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward svc/architect 5678:5678 -n agentic-architect > /dev/null 2>&1 &
-	@sleep 5
+	@echo "🌐 Starting Tunnels..."
+	@kubectl port-forward --address 127.0.0.1 svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward --address 127.0.0.1 svc/phoenix 6006:6006 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward --address 127.0.0.1 svc/phoenix 4317:4317 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward --address 127.0.0.1 svc/architect 8080:8080 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward --address 127.0.0.1 svc/architect 5678:5678 -n agentic-architect > /dev/null 2>&1 &
+	@sleep 10
 
 tunnels-stop:
+	echo "Stopping tunnels..."
 	@pkill -f "kubectl port-forward" || true
 
 ##@ Github CI
 
-ci-test: wait tunnels ## Run integration tests
+ci-test: wait
+	@$(MAKE) tunnels
 	@echo "🧪 Running CI Pipeline..."
-	-APP_URL=http://localhost:8080 \
+	@APP_URL=http://localhost:8080 \
 	 OLLAMA_URL=http://localhost:11434 \
 	 PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
-	 uv run pytest tests/
-	@$(MAKE) tunnels-stop
+	 DEBUG_PORT=5678 \
+	 uv run pytest tests/ ; \
+	 EXIT_CODE=$$? ; \
+	 $(MAKE) tunnels-stop ; \
+	 exit $$EXIT_CODE
 
 ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
 	sudo rm -rf /usr/share/dotnet
