@@ -94,6 +94,7 @@ tunnels:
 	@kubectl port-forward svc/phoenix 6006:6006 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward svc/phoenix 4317:4317 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward svc/architect 8080:8080 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/architect 5678:5678 -n agentic-architect > /dev/null 2>&1 &
 	@sleep 5
 
 tunnels-stop:
