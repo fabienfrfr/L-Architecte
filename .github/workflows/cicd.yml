@@ -55,6 +55,6 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
           devbox run ci-deploy
 
-      - name: Debug on Failure
-        if: failure()
-        run: devbox run debug-ci
+      - name: Global Status Check (Debug & Report)
+        if: always() 
+        run: devbox run status-check

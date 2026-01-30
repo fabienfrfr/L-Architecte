@@ -54,7 +54,7 @@
       "test-ci":         "make ci-test",
       "ci-build":        "skaffold build --push=true --file-output=build.json && make ci-tag-latest",
       "ci-deploy":       "make ci-fetch-kubeconfig && make ci-deploy",
-      "debug-ci":        "make debug",
+      "get-info":        "make status-check",
       "infra-reinstall": "make infra-reinstall"
     }
   }

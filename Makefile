@@ -81,22 +81,23 @@ lint-fix: ## Répare automatiquement les erreurs de formatage/lint
 	@uv run ruff check . --fix --exit-zero
 	@uv run ruff format .
 
-debug: ## Debug commands exactly as defined
+status-check: ## Debug commands exactly as defined
 	df -h
 	kubectl get pods -A
-	kubectl describe svc -n $(NAMESPACE)
+	kubectl describe all -n $(NAMESPACE)
+	kubectl get all -n $(NAMESPACE)
+	kubectl get endpoints -n $(NAMESPACE)
 	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp'
 	kubectl logs -n $(NAMESPACE) --tail=50 --prefix=true -l 'app in (architect, ollama, phoenix, arangodb)'
 
 # Port-forwarding
-tunnels:
+tunnels: tunnels-stop
 	@kubectl port-forward svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward svc/phoenix 6006:6006 4317:4317 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward svc/architect-service 8080:8080 5678:5678 -n agentic-architect --address 127.0.0.1 > /dev/null 2>&1 &
 	@sleep 5
 
 tunnels-stop:
-	echo "Stopping tunnels..."
 	@pkill -f "kubectl port-forward" || true
 
 ##@ Github CI

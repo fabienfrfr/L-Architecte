@@ -23,11 +23,13 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 
 # Pre-install dependencies to leverage Docker cache
-COPY apps/architect/requirements.txt ./apps/architect/
-RUN uv pip install --system --no-cache -r apps/architect/requirements.txt
+COPY pyproject.toml uv.lock ./
+COPY apps/architect/pyproject.toml ./apps/architect/
+RUN uv sync --frozen --no-dev --no-install-project
 
-# Copy the entire project
+# Copy & Install the entire project
 COPY . .
+RUN uv sync --frozen --no-dev
 
 # Metadata
 EXPOSE 8080 5678
@@ -37,4 +39,4 @@ LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArch
 LABEL org.opencontainers.image.description="TheArchitect - Agentic Architect Core"
 
 # ENV PYTHON_JIT=1 (if need optimization)
-CMD ["python3", "-m", "apps.architect.main"]
+CMD ["uv", "run", "python", "-m", "architect.main"]
