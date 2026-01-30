@@ -30,7 +30,7 @@ RUN uv pip install --system --no-cache -r apps/architect/requirements.txt
 COPY . .
 
 # Metadata
-EXPOSE 8080
+EXPOSE 8080 5678
 
 # Public container
 LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArchitect"

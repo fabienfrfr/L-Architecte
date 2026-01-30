@@ -27,6 +27,8 @@ deploy:
       - name: the-architect
         namespace: agentic-architect
         createNamespace: true
+        setValues:
+          architect.env.ENABLE_DEBUGGER: "true"
         chartPath: infra/charts/the-architect
         valuesFiles:
           - infra/charts/the-architect/values.yaml

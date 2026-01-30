@@ -76,6 +76,7 @@ def start_app() -> None:
 
     # Start NiceGUI server
     ui.run(
+        host='0.0.0.0',
         title="TheArchitect",
         port=8080,
         native=False,
