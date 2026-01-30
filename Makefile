@@ -94,7 +94,7 @@ debug: ## Debug commands exactly as defined
 tunnels:
 	@kubectl port-forward svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward svc/phoenix 6006:6006 4317:4317 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward svc/architect-service 8080:8080 5678:5678 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/architect-service 8080:8080 5678:5678 -n agentic-architect --address 127.0.0.1 > /dev/null 2>&1 &
 	@sleep 5
 
 tunnels-stop:
@@ -104,15 +104,17 @@ tunnels-stop:
 ##@ Github CI
 
 ci-test: wait tunnels
+	@curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 | grep 200 || (echo "❌ App not responding" && exit 1)
 	@echo "🧪 Running CI Pipeline..."
 	@APP_URL=http://localhost:8080 \
-	 OLLAMA_URL=http://localhost:11434 \
-	 PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
-	 DEBUG_PORT=5678 \
-	 uv run pytest tests/ ; \
-	 $(MAKE) tunnels-stop ; \
-	 exit $$EXIT_CODE
-
+     OLLAMA_URL=http://localhost:11434 \
+     PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
+     DEBUG_PORT=5678 \
+     uv run pytest tests/ ; \
+     RET=$$? ; \
+     $(MAKE) tunnels-stop ; \
+     exit $$RET
+	 
 ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
 	sudo rm -rf /usr/share/dotnet
 	sudo rm -rf /usr/local/lib/android

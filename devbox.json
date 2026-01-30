@@ -24,6 +24,9 @@
     "gnumake@latest",
     "psmisc@latest",
 
+    "nettools",
+    "iproute2",
+
     "zsh@latest",
     "oh-my-zsh@latest",
     "ruff@latest",
