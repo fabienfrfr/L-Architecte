@@ -1,5 +1,5 @@
 import re
-import pypdfium2 as pdfium
+import fitz  # PyMuPDF
 from fastembed import TextEmbedding
 from arango import ArangoClient
 import numpy as np
@@ -29,11 +29,18 @@ class ETLMapper:
         }
 
     def _extract(self, file_path):
-        doc = pdfium.PdfDocument(file_path)
-        return [
-            {"page_num": i + 1, "content": p.get_textpage().get_text_range()}
-            for i, p in enumerate(doc)
-        ]
+        doc = fitz.open(file_path)
+        pages_data = []
+        
+        for i, page in enumerate(doc):
+            text = page.get_text("text")
+            pages_data.append({
+                "page_num": i + 1,
+                "content": text
+            })
+            
+        doc.close()
+        return pages_data
 
     def _transform(self, raw_pages):
         data = []
