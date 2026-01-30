@@ -193,8 +193,10 @@ spec:
           imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
           workingDir: /app
           env:
-            - name: ENV
-              value: {{ .Values.architect.env | quote }}
+            {{- range $name, $value := .Values.architect.env }}
+            - name: {{ $name | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
             - name: ARANGODB_URL
               value: "http://arangodb:8529"
             - name: OLLAMA_URL

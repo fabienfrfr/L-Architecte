@@ -16,7 +16,9 @@ arangodb:
 
 architect:
   image: agentic-architect
-  env: "test"
+  env: 
+      ENABLE_DEBUGGER: "false"
+      ENV: "test"
   cpu: "0.5"
   memory: "512Mi"
 
