@@ -90,13 +90,10 @@ debug: ## Debug commands exactly as defined
 
 # Port-forwarding
 tunnels:
-	@echo "🌐 Opening Tunnels..."
-	-@pkill -f "kubectl port-forward" || true
-	@kubectl port-forward -n agentic-architect svc/architect 8080:8080 5678:5678 --address 127.0.0.1 > /dev/null 2>&1 &
-	@kubectl port-forward -n agentic-architect svc/arangodb 8529:8529 --address 127.0.0.1 > /dev/null 2>&1 &
-	@kubectl port-forward -n agentic-architect svc/ollama 11434:11434 --address 127.0.0.1 > /dev/null 2>&1 &
-	@timeout 20s bash -c 'until (echo > /dev/tcp/127.0.0.1/8080) 2>/dev/null; do sleep 1; done'
-	@echo "✅ All ports mapped on 127.0.0.1"
+	@kubectl port-forward svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/phoenix 6006:6006 4317:4317 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/architect 8080:8080 5678:5678 -n agentic-architect > /dev/null 2>&1 &
+	@sleep 5
 
 tunnels-stop:
 	echo "Stopping tunnels..."
@@ -104,15 +101,13 @@ tunnels-stop:
 
 ##@ Github CI
 
-ci-test: wait
-	@$(MAKE) tunnels
+ci-test: wait tunnels
 	@echo "🧪 Running CI Pipeline..."
 	@APP_URL=http://localhost:8080 \
 	 OLLAMA_URL=http://localhost:11434 \
 	 PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
 	 DEBUG_PORT=5678 \
 	 uv run pytest tests/ ; \
-	 EXIT_CODE=$$? ; \
 	 $(MAKE) tunnels-stop ; \
 	 exit $$EXIT_CODE
 
