@@ -44,6 +44,11 @@ portForward:
     namespace: agentic-architect
     port: 8080
     localPort: 8080
+  # Debug mode
+  - resourceType: service
+    resourceName: architect-service
+    port: 5678
+    localPort: 5678
   # ArangoDB UI
   - resourceType: service
     resourceName: arangodb
@@ -56,8 +61,3 @@ portForward:
     namespace: agentic-architect
     port: 6006
     localPort: 6006
-  # Debug mode
-  - resourceType: deployment
-    resourceName: architect
-    port: 5678
-    localPort: 5678

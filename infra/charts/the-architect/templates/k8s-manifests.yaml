@@ -212,6 +212,9 @@ spec:
               add: ["SYS_PTRACE"]
           ports:
             - containerPort: 8080
+              name: http
+            - containerPort: 5678
+              name: debug
           resources:
             requests:
               memory: {{ .Values.architect.memory | quote }}

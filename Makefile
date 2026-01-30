@@ -86,13 +86,15 @@ debug: ## Debug commands exactly as defined
 	kubectl get pods -A
 	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp'
 	kubectl logs -n $(NAMESPACE) -l app=architect --tail=100
+	kubectl exec -n agentic-architect deployment/architect -- env | grep -E "ENV|DEBUG"
+	kubectl exec -n agentic-architect deployment/architect -- netstat -tulnp
 
 
 # Port-forwarding
 tunnels:
 	@kubectl port-forward svc/ollama 11434:11434 -n agentic-architect > /dev/null 2>&1 &
 	@kubectl port-forward svc/phoenix 6006:6006 4317:4317 -n agentic-architect > /dev/null 2>&1 &
-	@kubectl port-forward svc/architect 8080:8080 5678:5678 -n agentic-architect > /dev/null 2>&1 &
+	@kubectl port-forward svc/architect-service 8080:8080 5678:5678 -n agentic-architect > /dev/null 2>&1 &
 	@sleep 5
 
 tunnels-stop:
