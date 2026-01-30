@@ -2,7 +2,6 @@
 name = "architect"
 version = "0.1.0"
 description = "L'Architecte"
-readme = "README.md"
 authors = [
     { name = "fabienfrfr", email = "fabien.furfaro@gmail.com" }
 ]
