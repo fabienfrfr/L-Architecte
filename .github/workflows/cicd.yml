@@ -57,4 +57,4 @@ jobs:
 
       - name: Global Status Check (Debug & Report)
         if: always() 
-        run: devbox run status-check
+        run: devbox run get-info
