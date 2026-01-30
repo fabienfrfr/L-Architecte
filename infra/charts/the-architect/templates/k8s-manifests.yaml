@@ -233,6 +233,10 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: 8080
+    - name: debug
+      protocol: TCP
+      port: 5678
+      targetPort: 5678
 ---
 # --- BONUS. THE INGRESS --- (DISABLED)
 {{- if .Values.ingress.enabled }}

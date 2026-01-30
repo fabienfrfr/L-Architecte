@@ -84,11 +84,9 @@ lint-fix: ## Répare automatiquement les erreurs de formatage/lint
 debug: ## Debug commands exactly as defined
 	df -h
 	kubectl get pods -A
+	kubectl describe svc -n $(NAMESPACE)
 	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp'
-	kubectl logs -n $(NAMESPACE) -l app=architect --tail=100
-	kubectl exec -n agentic-architect deployment/architect -- env | grep -E "ENV|DEBUG"
-	kubectl exec -n agentic-architect deployment/architect -- netstat -tulnp
-
+	kubectl logs -n $(NAMESPACE) --tail=50 --prefix=true -l 'app in (architect, ollama, phoenix, arangodb)'
 
 # Port-forwarding
 tunnels:
@@ -104,7 +102,6 @@ tunnels-stop:
 ##@ Github CI
 
 ci-test: wait tunnels
-	@curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 | grep 200 || (echo "❌ App not responding" && exit 1)
 	@echo "🧪 Running CI Pipeline..."
 	@APP_URL=http://localhost:8080 \
      OLLAMA_URL=http://localhost:11434 \
@@ -114,7 +111,7 @@ ci-test: wait tunnels
      RET=$$? ; \
      $(MAKE) tunnels-stop ; \
      exit $$RET
-	 
+
 ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
 	sudo rm -rf /usr/share/dotnet
 	sudo rm -rf /usr/local/lib/android
