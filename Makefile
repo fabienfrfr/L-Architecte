@@ -98,20 +98,21 @@ tunnels: tunnels-stop
 	@sleep 5
 
 tunnels-stop:
-	@pkill -f "kubectl port-forward" || true
+	@-pkill -f "kubectl port-forward" 2>/dev/null || true
 
 ##@ Github CI
 
-ci-test: wait tunnels
+
+ci-test: wait
+	@$(MAKE) tunnels
 	@echo "🧪 Running CI Pipeline..."
 	@APP_URL=http://localhost:8080 \
-     OLLAMA_URL=http://localhost:11434 \
-     PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
-     DEBUG_PORT=5678 \
-     uv run pytest tests/ ; \
-     RET=$$? ; \
-     $(MAKE) tunnels-stop ; \
-     exit $$RET
+	 OLLAMA_URL=http://localhost:11434 \
+	 PHOENIX_COLLECTOR_ENDPOINT=http://localhost:4317 \
+	 DEBUG_PORT=5678 \
+	 uv run pytest tests/ || (RET=$$?; $(MAKE) tunnels-stop; exit $$RET)
+	@$(MAKE) tunnels-stop
+
 
 ci-deep-clean: ## Deep cleanup for GitHub Runner disk space
 	sudo rm -rf /usr/share/dotnet
