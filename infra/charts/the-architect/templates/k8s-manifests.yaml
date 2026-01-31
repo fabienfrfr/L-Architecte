@@ -163,6 +163,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: arangodb-pvc
   namespace: {{ .Values.namespace }}
+  labels:
+    app: arangodb
 spec:
   accessModes:
     - ReadWriteOnce
