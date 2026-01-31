@@ -8,12 +8,13 @@ from apps.architect.ui.layout import ArchitectLayout
 from apps.architect.controller import ArchitectController
 from apps.architect.core.observability import setup_observability
 
+# Import the compiled graph for visualization
+from apps.architect.core.orchestrator import app_workflow
+
+# Debug port
 from apps.architect.core.debugger import setup_debugger
 
 setup_debugger()
-
-# Import the compiled graph for visualization
-from apps.architect.core.orchestrator import app_workflow
 
 # Configure Logger for production-level feedback
 logging.basicConfig(
