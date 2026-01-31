@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PKG_CONFIG_PATH="/usr/lib/$(uname -m)-linux-gnu/pkgconfig:/usr/share/pkgconfig"
-ENV PYTHONPATH="/app/apps"
+ENV PYTHONPATH=/app
 
 # Install uv for fast dependency management
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -39,4 +39,4 @@ LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArch
 LABEL org.opencontainers.image.description="TheArchitect - Agentic Architect Core"
 
 # ENV PYTHON_JIT=1 (if need optimization)
-CMD ["uv", "run", "python", "-m", "architect.main"]
+CMD ["uv", "run", "python", "-m", "apps.architect.main"]
