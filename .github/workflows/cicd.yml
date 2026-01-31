@@ -27,7 +27,7 @@ jobs:
         run: devbox run set
 
       - name: Build and k3d Deploy with Skaffold
-        run: devbox run skaffold run --tail=false
+        run: devbox run skaffold run #--tail=false
 
       - name: Run Integration Tests
         run: devbox run test-ci
