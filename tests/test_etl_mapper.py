@@ -1,6 +1,6 @@
 import pytest
 from pytest_bdd import scenario, given, when, then, parsers
-from apps.architect.ingestion.etl_mapper import ETLMapper
+from apps.architect.dao.etl_mapper import ETLMapper
 
 import httpx
 

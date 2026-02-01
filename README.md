@@ -32,7 +32,7 @@ While general-purpose agents like Skywork, Manus, or Genspark excel at rapid tas
 One of the core goals of **AgenticArchitect** is to achieve **Self-Evolution**. **AgenticArchitect** is also a personal laboratory for mastering cloud architecture standards. The goal is to align the agents' outputs with official certification requirements to ensure industrial-grade designs.
 
 * **Current focus:** Training the agents to respect **OVHcloud Solutions Architect** standards (vRack isolation, S3 compliance, and sovereign data management).
-* **Methodology:** Implementing **iSAQB** agnostic patterns to move beyond simple "code generation" toward true system engineering.
+* **Methodology:** Implementing **iSAQB** agnostic patterns to move beyond simple "code generation" toward true system engineering (SoC, DRY, KISS and SOLID).
 
 
 ## 🔍 Related Research & Agentic Tools
