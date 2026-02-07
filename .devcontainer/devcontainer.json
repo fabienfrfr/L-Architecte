@@ -1,0 +1,87 @@
+{
+    /*
+   * Prerequisites:
+   * VSCodium with the "jeanp413.open-remote-ssh" extension installed.
+   */
+    "name": "TheArchitect-Kernel",
+    "image": "jetpackio/devbox:latest",
+    "remoteUser": "devbox",
+    "containerUser": "devbox",
+    "forwardPorts": [8080, 8529, 6006, 11434, 5678],
+    "workspaceFolder": "/workspaces/AgenticArchitect",
+
+    // k3d local management
+    "runArgs": [
+        "--add-host=host.docker.internal:host-gateway"
+    ],
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "version": "latest",
+            "enableNonRootDocker": "true",
+            "moby": false
+        }
+    },
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+        "source=/nix,target=/nix,type=bind"
+    ],
+    "containerEnv": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock",
+        "KUBECONFIG": "/home/devbox/.kube/config"
+    },
+
+    // DevBox Command (DooD bridge)
+    "postCreateCommand": "devbox run setup && devbox run cluster && devbox run -- bash scripts/dev-bridge.sh",
+    // "postAttachCommand": "devbox run tmux has-session -t stack 2>/dev/null || devbox run tmux new-session -d -s stack 'devbox run up'",
+
+    // IDE
+    "customizations": {
+        "devpod": {
+            "ide": "browser" // web codium
+        },
+        "codespaces": {
+            "openmanually": true
+        },
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "charliermarsh.ruff",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.jupyter-renderers",
+                "marimo-team.vscode-marimo", 
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "ms-azuretools.vscode-docker",
+                "stateful.runme",
+                "eamodio.gitlens",
+                "jebbs.plantuml",
+                "bierner.markdown-mermaid"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "devbox-shell",
+                "terminal.integrated.profiles.linux": {
+                    "devbox-shell": {
+                        "path": "devbox",
+                        "args": ["shell"]
+                    }
+                },
+                //"python.defaultInterpreterPath": "${workspaceFolder}/.devbox/virtenv/python@3.13/bin/python",
+                "terminal.integrated.env.linux": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                },
+                "python.envFile": "${workspaceFolder}/.env",
+                "python.terminal.activateEnvInSelectedTerminal": true,
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestArgs": [
+                    "tests" 
+                ],
+                "python.testing.unittestEnabled": false,
+                "python.testing.nosetestsEnabled": false,
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true
+                }
+            }
+        }
+    }
+}

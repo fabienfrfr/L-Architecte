@@ -1,0 +1,63 @@
+{
+  "packages": [
+    "python@3.13",
+    "uv@latest",
+    "openjdk@17",
+
+    "pkg-config@latest",
+    "cairo@latest",
+    "gobject-introspection@latest",
+    "glib@latest",
+
+    "k3d@latest",
+    "kubectl@latest",
+    "kubernetes-helm@latest",
+    "skaffold@latest",
+    "k9s@latest",
+
+    "pulumi@latest",
+
+    "tmux@latest",
+    "git@latest",
+    "curl@latest",
+    "rsync@latest",
+    "gnumake@latest",
+    "psmisc@latest",
+
+    "nettools",
+    "iproute2",
+
+    "zsh@latest",
+    "oh-my-zsh@latest",
+    "ruff@latest",
+    "jq@latest",
+
+    "gh@latest"
+  ],
+  "env": {
+    "DEVBOX_SKIP_VENV_CONFIG": "1",
+    "UV_PROJECT_ENVIRONMENT":  ".venv"
+  },
+  "shell": {
+    "init_hook": [
+      "echo '🚀 Welcome to AgenticArchitect'",
+      "if [ -f pyproject.toml ]; then uv sync --quiet; fi",
+      "if [ -d .venv ]; then . .venv/bin/activate; fi",
+      "alias ta='tmux attach -t stack'",
+      "alias tl='tmux ls'",
+      "if [ -z \"$TMUX\" ] && [ \"$(tmux ls 2>/dev/null | grep -c 'stack')\" -eq 1 ] && [ \"$(tmux ls 2>/dev/null | grep 'stack' | grep -v 'attached')\" ]; then tmux attach -t stack; fi"
+    ],
+    "scripts": {
+      "setup":           "make setup-env",
+      "install":         "make install",
+      "cluster":         "make cluster",
+      "set":             "make install && make cluster",
+      "up":              "fuser -k 8080/tcp || true && skaffold dev --port-forward --tail",
+      "test-ci":         "make ci-test",
+      "ci-build":        "skaffold build --push=true --file-output=build.json && make ci-tag-latest",
+      "ci-deploy":       "make ci-fetch-kubeconfig && make ci-deploy",
+      "get-info":        "make status-check",
+      "infra-reinstall": "make infra-reinstall"
+    }
+  }
+}

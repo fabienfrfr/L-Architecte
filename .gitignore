@@ -1,3 +1,75 @@
+### Global part ###
+# mapped files
+project_structure.json
+# IDEs and editors
+.vscode/
+
+# JavaScript / Node.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Docker & Infrastructure
+letsencrypt/
+ollama_data/
+*.db
+*.log
+.env
+.venv/
+
+# Dev
+skaffold
+temp
+versions/*/
+devbox.lock
+.devpod-internal
+/.devbox
+/logs
+
+# Infra
+.pulumi/
+Pulumi.*.yaml
+!Pulumi.yaml
+
+# Python (Poetry, Pipenv, UV) --> Dont use jupyter notebooks here
+poetry.lock
+Pipfile.lock
+uv.lock
+.pynb
+
+# PHP
+composer.lock
+
+# Ruby
+Gemfile.lock
+
+### JavaScript part ###
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+build/
+dist/
+
+# Env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Misc
+.DS_Store
+.vscode/
+
+
+### Python part ###
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

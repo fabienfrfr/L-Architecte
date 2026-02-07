@@ -1,0 +1,25 @@
+@startuml
+!theme plain
+title Need Analysis (Horned Beast) - AgenticArchitect
+
+package "To whom does it render service?" {
+  [Software Architect / Developer] as user
+}
+
+package "On what does it act?" {
+  [Unstructured Requirements & Ideas] as subject
+}
+
+package "AgenticArchitect (TheArchitect)" <<System>> {
+  circle "Project Goal" as goal
+}
+
+user -- goal
+subject -- goal
+
+note bottom of goal
+  **Goal:** To automatically transform raw requirements 
+  into production-ready, SOLID code and 
+  architectural artifacts while ensuring data sovereignty.
+end note
+@enduml

@@ -1,0 +1,77 @@
+name: CICD-Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space (Deep Cleanup)
+        run: make ci-deep-clean
+
+      - name: Move Docker Storage to /mnt
+        run: |
+          sudo systemctl stop docker
+          sudo mkdir -p /mnt/docker-data
+          sudo rsync -aP /var/lib/docker/ /mnt/docker-data
+          echo '{"data-root": "/mnt/docker-data"}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl start docker
+          docker info -f '{{ .DockerRootDir }}'
+
+      - name: Slim Down Devbox (Whitelist Only)
+        run: |
+          jq '.packages = [
+            .packages[] | select(test("python|uv|k3d|kubectl|helm|skaffold|gnumake|curl|jq"))
+          ]' devbox.json > devbox.ci.json
+          
+          mv devbox.ci.json devbox.json
+
+      - name: Install Devbox
+        uses: jetpack-io/devbox-install-action@v0.11.0
+
+      - name: Setup Infrastructure (cluster)
+        run: devbox run set
+
+      - name: Build and k3d Deploy with Skaffold
+        run: devbox run skaffold dev --port-forward &
+
+      - name: Run Integration Tests
+        run: devbox run test-ci
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/main' && success()
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Publish Artifacts to GHCR
+        if: github.ref == 'refs/heads/main' && success()
+        run: |
+          export SKAFFOLD_DEFAULT_REPO=ghcr.io/${{ github.repository_owner }}
+          devbox run ci-build
+
+      - name: Fetch Kubeconfig and Deploy to VPS
+        if: github.ref == 'refs/heads/main' && success()
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          eval $(ssh-agent -s)
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+          devbox run ci-deploy
+
+      - name: Global Status Check (Debug & Report)
+        if: always() 
+        run: devbox run get-info

@@ -1,0 +1,85 @@
+@startuml AgenticArchitect_Master_Workflow
+!theme plain
+skinparam ConditionEndStyle hline
+
+title Logical Flow: Adaptive AgenticArchitect (Swimlane)
+
+|User|
+start
+:Submit Requirements (PDF/Docx);
+:Upload Sample Data (Optionnal);
+
+|#F9F9F9|Project Manager Agent|
+repeat
+  :Analyze Project Charter;
+  if (Is Charter SMART & Complete?) then (No)
+    :Identify Gaps;
+    |User|
+    if (User provides missing info?) then (Yes)
+      :Update Charter;
+      |#F9F9F9|Project Manager Agent|
+    else (No / Skip)
+      :PM fills gaps with **Hypotheses**;
+      note right: Mark fields as "AI-Generated / To be Verified"
+    endif
+  else (Yes)
+    break
+  endif
+repeat while (Charter Ready for Arch?) is (Yes)
+:Generate Final Project Charter & Executive Summary;
+
+split
+   |#FFF3E0|Data Analyst Agent|
+   partition "Data Discovery & Preparation" {
+     if (Sample Data Provided?) then (Yes)
+       :Run Automated EDA;
+       :Generate Data Profile Report;
+     else (No)
+       :Generate **Synthetic Data** (Faker/LLM);
+     endif
+     :Define Data Validation Rules;
+     :Produce Sample Dataset for Dev;
+   }
+split again
+   |#E3F2FD|Architect Agent|
+   partition "Value Analysis (The Why)" {
+     :Functional Analysis (Bull's Eye / Octopus);
+     :Assess SOTA & TRL;
+   }
+   partition "Solution Design (The How)" {
+     :Determine Solution Type (POC/MVP/App);
+     :Generate Diagrams (BPMN, SADT, C4);
+     :Draft RACI & Budgetary Estimation;
+   }
+   partition "Execution Specs" {
+     :Decompose into User Stories (DoR,DoR);
+     :Define Data Schemas & API Contracts;
+   }
+end split
+
+|#E3F2FD|Architect Agent|
+:Generate Technical Architecture Dossier (TAD) + Slides;
+
+|#F1F8E9|Developer Agent (IA/Data/Devops)|
+:Initialize Git Repo, CI/CD & Env (Docker/Kubernetes);
+:Scaffold Project Structure (V-Cycle Logic);
+
+partition "Iterative Development (SOLID + Git)" {
+  repeat
+    :Define Atomic Task;
+    :Data Pipeline & DB Migration;
+    :TDD: Write Test -> Implement Code;
+    if (Unit & Integration Tests Pass?) then (No)
+      :Self-Debug (Logs analysis -> Refactor);
+    else (Yes)
+      :Document & Merge;
+      :Git Commit & Push (feat: task-name);
+      break
+    endif
+  repeat while (Remaining Tasks?) is (Yes)
+}
+
+|User|
+:Receive Deliverables (Git Repo, Codebase, TAD, EDA Report, Pitch Deck);
+stop
+@enduml

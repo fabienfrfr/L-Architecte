@@ -1,0 +1,18 @@
+@startuml
+!theme plain
+title Octopus Diagram (Pieuvre) - AgenticArchitect
+
+package "System" {
+  [AgenticArchitect] as AA
+}
+
+actor "User (Architect)" as user
+actor "GPU / Local Hardware" as hardware
+database "Project Filesystem" as fs
+entity "SOLID / Clean Code" as standards
+
+user -- AA : MF-1: Interaction & Validation
+AA -- hardware : CF-2: Resource usage
+AA -- fs : CF-1: Data sovereignty
+AA -- standards : CF-3: Quality enforcement
+@enduml

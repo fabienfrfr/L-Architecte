@@ -1,0 +1,17 @@
+requirement_id: REQ-TUNNELS
+component: Infrastructure Connectivity
+priority_framework: MoSCoW
+
+must_have:
+  port_forwarding:
+    id: "NET-01"
+    description: "Kubernetes services must be accessible via localhost tunnels."
+    mapping:
+      - name: "Ollama"
+        local_port: 11434
+      - name: "Phoenix UI"
+        local_port: 6006
+      - name: "Phoenix Collector"
+        local_port: 4317
+      - name: "Architect App"
+        local_port: 8080

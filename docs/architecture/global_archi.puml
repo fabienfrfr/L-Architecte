@@ -1,0 +1,79 @@
+@startuml AgenticArchitect_Final_With_Legend
+
+' --- Configuration & Style ---
+!theme plain
+skinparam backgroundColor white
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam DefaultFontName "Segoe UI", Arial
+left to right direction
+
+' Style for Layers
+skinparam rectangle<<Layer>> {
+    BackgroundColor #F8F9FA
+    BorderColor #999999
+    BorderStyle dashed
+    FontColor #333333
+}
+
+' Style for Hardware/Core
+skinparam node {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+
+' --- LAYER 1: DATA ---
+rectangle "Input / Data Layer" <<Layer>> {
+    artifact "Client Requirements\n(PDF/Docx)" as docs
+    component "Document Loader\n& Parser" as parser
+    database "ChromaDB\n(Vector Store)" as db #E1F5FE
+}
+
+' --- LAYER 2: COMPUTE ---
+rectangle "Local Inference Core" <<Layer>> {
+    node "vLLM / Ollama\nRuntime" as runtime #BBDEFB
+    control "**NVIDIA GPU Core**\n(RTX 5090 Ti)" as gpu #00E5FF
+    card "Nemotron-3 Nano (30B)\n(Mamba/MoE Architecture)" as model #E3F2FD
+    
+    runtime <--> gpu : "Compute"
+    gpu <--> model : "Inference"
+}
+
+' --- LAYER 3: AGENTS ---
+rectangle "Agentic Bus & Output" <<Layer>> {
+    agent "Agent Orchestrator\n(CrewAI / LangGraph)" as bus #C8E6C9
+    agent "Agent Analyst" as analyst
+    agent "Agent Architect" as architect
+    
+    package "Final Deliverables" {
+        file "Executive Synthesis (.md)" as out1
+        file "Architecture Diagram (txt)" as out2
+        file "Infrastructure Code (tf)" as out3
+    }
+}
+
+' --- Flux ---
+docs --> parser
+parser --> db
+db --> runtime : "Context Injection"
+runtime <--> bus : "REST API"
+bus <--> analyst
+bus <--> architect
+architect --> out2
+architect --> out3
+analyst --> out1
+
+' --- Legend ---
+legend right
+|= Color/Shape |= Description |
+|<#F4F4F4> Rectangle | Logical Layer Boundary |
+|<#E1F5FE> [DB Icon] | Local Vector Database (RAG) |
+|<#00E5FF> (Control) | Hardware Acceleration (GPU) |
+|<#C8E6C9> [Agent] | Autonomous AI Agent |
+|<#BBDEFB> [Node] | Software Execution Runtime |
+| <--> | Bi-directional Feedback Loop |
+endlegend
+
+caption "AgenticArchitect: Local AI Solution Architecture"
+
+@enduml

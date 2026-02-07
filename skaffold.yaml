@@ -1,0 +1,74 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: agentic-architect
+build:
+  local:
+    push: false
+  tagPolicy:
+    gitCommit: {}
+  artifacts:
+    - image: agentic-architect
+      context: .
+      docker:
+        dockerfile: apps/architect/Dockerfile
+      sync:
+        manual:
+          - src: "apps/architect/**/*.py"
+            dest: .
+    - image: custom-ollama-gemma
+      context: apps/ollama
+      docker:
+        dockerfile: Dockerfile
+
+deploy:
+  helm:
+    releases:
+      - name: the-architect
+        namespace: agentic-architect
+        createNamespace: true
+        setValues:
+          architect.env.ENABLE_DEBUGGER: "true"
+        chartPath: infra/charts/the-architect
+        valuesFiles:
+          - infra/charts/the-architect/values.yaml
+        setValueTemplates:
+          ollama.image: "{{.IMAGE_FULLY_QUALIFIED_custom_ollama_gemma}}"
+          architect.image: "{{.IMAGE_FULLY_QUALIFIED_agentic_architect}}"
+
+
+portForward:
+  # NiceGUI
+  - resourceType: service
+    resourceName: architect-service
+    namespace: agentic-architect
+    port: 8080
+    localPort: 8080
+  # ArangoDB UI
+  - resourceType: service
+    resourceName: arangodb
+    namespace: agentic-architect
+    port: 8529
+    localPort: 8529
+  # Observability
+  - resourceType: service
+    resourceName: phoenix
+    namespace: agentic-architect
+    port: 6006
+    localPort: 6006
+  
+  # --- INFRA TESTS ---
+
+  # Ollama
+  - resourceType: service
+    resourceName: ollama
+    namespace: agentic-architect
+    port: 11434
+    localPort: 11434
+
+  # Phoenix Collector / gRPC
+  - resourceType: service
+    resourceName: phoenix
+    namespace: agentic-architect
+    port: 4317
+    localPort: 4317

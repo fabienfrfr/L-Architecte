@@ -1,0 +1,29 @@
+# Default Configuration
+namespace: agentic-architect
+
+global:
+  imagePullPolicy: IfNotPresent
+
+ollama:
+  image: custom-ollama-gemma
+  cpu: "1"
+  memory: "2Gi"
+
+arangodb:
+  image: arangodb/arangodb:3.11
+  cpu: "0.2"
+  storageSize: "512Mi"
+
+architect:
+  image: agentic-architect
+  env: 
+      ENABLE_DEBUGGER: "false"
+      ENV: "test"
+  cpu: "0.5"
+  memory: "512Mi"
+
+phoenix:
+  image: arizephoenix/phoenix:latest
+
+ingress:
+  enabled: false
