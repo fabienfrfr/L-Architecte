@@ -32,7 +32,8 @@
     "ruff@latest",
     "jq@latest",
 
-    "gh@latest"
+    "gh@latest",
+    "typst@latest"
   ],
   "env": {
     "DEVBOX_SKIP_VENV_CONFIG": "1",

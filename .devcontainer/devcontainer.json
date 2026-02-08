@@ -55,7 +55,8 @@
                 "stateful.runme",
                 "eamodio.gitlens",
                 "jebbs.plantuml",
-                "bierner.markdown-mermaid"
+                "bierner.markdown-mermaid",
+                "myriad-dreamin.tinymist"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "devbox-shell",
