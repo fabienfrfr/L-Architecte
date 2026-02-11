@@ -206,7 +206,7 @@ def deploy_app(vps_ip: str, cfg: ArchitectConfig, dependency: Optional[remote.Co
             ],
             values={
                 "force_update": cfg.force_key,
-                "ollama": {"image": "ghcr.io/fabienfrfr/custom-ollama-gemma:latest"},
+                "ollama": {"image": "ghcr.io/fabienfrfr/custom-ollama:latest"},
                 "architect": {"image": "ghcr.io/fabienfrfr/agentic-architect:latest"},
                 "ingress": {"enabled": False},  # Handled by Pulumi for better control
             },

@@ -16,7 +16,7 @@ build:
         manual:
           - src: "apps/architect/**/*.py"
             dest: .
-    - image: custom-ollama-gemma
+    - image: custom-ollama
       context: apps/ollama
       docker:
         dockerfile: Dockerfile
@@ -33,7 +33,7 @@ deploy:
         valuesFiles:
           - infra/charts/the-architect/values.yaml
         setValueTemplates:
-          ollama.image: "{{.IMAGE_FULLY_QUALIFIED_custom_ollama_gemma}}"
+          ollama.image: "{{.IMAGE_FULLY_QUALIFIED_custom_ollama}}"
           architect.image: "{{.IMAGE_FULLY_QUALIFIED_agentic_architect}}"
 
 

@@ -2,7 +2,7 @@
 
 **Status:** Accepted (Supersedes Langfuse)
 
-**Context:** The **AgenticArchitect** system (LangGraph + Ollama/Gemma) requires deep observability to trace agent reasoning and "Chain of Thought." Initial evaluation of Langfuse revealed excessive infrastructure overhead (PostgreSQL + ClickHouse) for local development on limited hardware.
+**Context:** The **AgenticArchitect** system (LangGraph + Ollama/Qwen) requires deep observability to trace agent reasoning and "Chain of Thought." Initial evaluation of Langfuse revealed excessive infrastructure overhead (PostgreSQL + ClickHouse) for local development on limited hardware.
 
 **Decision:** We will use **Arize Phoenix** as the primary observability layer. Integration will be handled via **OpenTelemetry (OTLP)** standards to ensure a lightweight, vendor-neutral footprint.
 

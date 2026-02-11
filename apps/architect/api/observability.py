@@ -67,7 +67,7 @@ class PhoenixProvider:
             # Set global tracer provider
             trace.set_tracer_provider(self._provider)
 
-            # Patch LangChain/LangGraph to emit OpenInference spans
+            # Patch LangChain/Pydantic(?) to emit OpenInference spans
             self._instrument_libraries()
 
             logger.info(

@@ -3,12 +3,12 @@ from apps.architect.domain.models import ADR
 
 
 class ArchitectAgent:
-    def generate_c4_diagram(self, requirements: Dict) -> str:
+    async def generate_c4_diagram(self, requirements: Dict) -> str:
         return """graph TD
             A[Client] --> B[FastAPI]
             B --> C[Architect Agent]"""
 
-    def generate_adr(self, context: Dict) -> ADR:
+    async def generate_adr(self, context: Dict) -> ADR:
         return ADR(
             title="Use ChromaDB",
             context="Need local RAG",

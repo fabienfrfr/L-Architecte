@@ -4,8 +4,8 @@ ENV OLLAMA_MODELS=/root/.ollama/models
 
 RUN nohup bash -c "ollama serve &" && \
     sleep 5 && \
-    # Ultra light model
-    ollama pull gemma3:270m && \
+    # Ultra light model (min think and tool)
+    ollama run qwen3:0.6b && \
     pkill ollama
 
 EXPOSE 11434

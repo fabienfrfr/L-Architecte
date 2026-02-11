@@ -15,7 +15,7 @@
     "skaffold@latest",
     "k9s@latest",
 
-    "pulumi@latest",
+    "pulumi-bin@3.217.1",
 
     "tmux@latest",
     "git@latest",
@@ -32,7 +32,8 @@
     "ruff@latest",
     "jq@latest",
 
-    "gh@latest"
+    "gh@latest",
+    "typst@latest"
   ],
   "env": {
     "DEVBOX_SKIP_VENV_CONFIG": "1",

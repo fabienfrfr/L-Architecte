@@ -10,6 +10,6 @@ must_have:
     expected_status: 200
   model:
     id: "MODEL-01"
-    description: "The gemma3:270m model must be pulled and ready."
-    name: "gemma3:270m"
+    description: "The qwen3:0.6b model must be pulled and ready."
+    name: "qwen3:0.6b"
     endpoint: "/api/tags"

@@ -182,6 +182,7 @@ infra-reinstall: ## 🚀 FULL REINSTALL: Trigger OVH Reinstall + System + App
 
 reset-pulumi: ## ☢️ FACTORY RESET: Wipe Pulumi state and re-init
 	@echo "⚠️ Deleting Pulumi stack $(STACK_NAME)..."
+	pulumi login --local
 	$(PULUMI_CMD) stack rm $(STACK_NAME) --force --yes || true
 	$(PULUMI_CMD) stack init $(STACK_NAME)
 	@echo "👉 Now run 'make infra-auth' to re-inject your secrets."

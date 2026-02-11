@@ -44,6 +44,11 @@ dev = [
     "pytest-env>=1.2.0",
     "pyyaml>=6.0.3",
     "ruff>=0.14.14",
+    "pulumi==3.217.1", 
+    "pulumi-command>=1.1.3",
+    "pulumi-kubernetes>=4.25.0",
+    "ovh>=1.2.0",
+    "pulumi-ovh>=2.11.0",
 ]
 
 

@@ -55,10 +55,11 @@
                 "stateful.runme",
                 "eamodio.gitlens",
                 "jebbs.plantuml",
-                "bierner.markdown-mermaid"
+                "bierner.markdown-mermaid",
+                "myriad-dreamin.tinymist",
+                "cweijan.vscode-office" // change default open with (build in text editor)
             ],
             "settings": {
-                "terminal.integrated.defaultProfile.linux": "devbox-shell",
                 "terminal.integrated.profiles.linux": {
                     "devbox-shell": {
                         "path": "devbox",

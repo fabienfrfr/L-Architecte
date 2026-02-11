@@ -2,6 +2,8 @@ import pytest
 from pytest_bdd import scenario, given, when, then, parsers
 from apps.architect.agents.nodes.pm import PMAgent
 
+import anyio
+
 import httpx
 from conftest import app_offline
 
@@ -29,7 +31,7 @@ def client_requirements(requirements):
 def analyze_request(context):
     agent = PMAgent()
     # The agent returns an AIMessage object
-    context["result"] = agent.check_requirements(context["input"])
+    context["result"] = anyio.run(agent.check_requirements, context["input"])
 
 
 @then("the Charter should be marked as incomplete")

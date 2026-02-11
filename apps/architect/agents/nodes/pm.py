@@ -1,78 +1,72 @@
 from typing import List, Dict, Any
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
-from apps.architect.dao.llm_client import get_llm
+from pydantic_ai import Agent, ModelSettings
+from apps.architect.dao.llm_client import get_llm_model
 from apps.architect.dto.contracts import PMAnalysisReport
 from apps.architect.domain.models import TechnicalSpec
 
 class PMAgent:
     """
-    Project Manager Agent responsible for requirements validation and specification.
-    Follows SRP (Single Responsibility Principle) by delegating data structures 
-    to Contracts and Domain models.
+    Project Manager Agent using PydanticAI.
+    Ensures strict JSON output matching domain models.
     """
 
-    def __init__(self):
-        # DAO Layer: Fetching the LLM client with JSON enforcement
-        self.llm = get_llm(json_mode=True)
-        
-        self.structured_llm = self.llm.with_structured_output(PMAnalysisReport)
-        
-        # PROMPTS: Centralized prompt management for the agent's 'brain'
-        self.check_prompt = ChatPromptTemplate.from_messages([
-            (
-                "system",
-                "You are a strict Project Manager. Analyze the client requirements using SMART criteria. "
-                "If ANY detail is missing (data sources, deadliness, specific tech stack, scale), "
-                "set 'is_smart' to false. "
-                "Return ONLY JSON with keys: 'is_smart' (bool), 'gaps' (list), 'hypotheses' (list)."
-            ),
-            ("user", "{requirements}"),
-        ])
-        
-        self.gen_prompt = ChatPromptTemplate.from_template(
-            "Based on these validated points, generate 5 detailed technical requirements. "
-            "Return a list of JSON objects with keys: 'title', 'description', 'priority'. "
-            "Points: {points}"
+    def __init__(self) -> None:
+        self.model = get_llm_model()
+        self.settings = ModelSettings(
+            temperature=0.0,
+            response_format={'type': 'json_object'}
         )
 
-    def check_requirements(self, requirements: str) -> PMAnalysisReport:
+        # Agent for SMART validation
+        self._checker_agent = Agent(
+            model=self.model,
+            output_type=PMAnalysisReport,
+            model_settings=self.settings,
+            instructions=(
+                "You are a strict Project Manager. Analyze requirements using SMART criteria. "
+                "If ANY detail is missing, set 'is_smart' to false. "
+                f"Output MUST be JSON with keys: {list(PMAnalysisReport.model_fields.keys())}."
+            )
+        )
+
+        # Agent for Technical Specifications
+        self._spec_agent = Agent(
+            model=self.model,
+            output_type=List[TechnicalSpec],
+            model_settings=self.settings,
+            instructions=(
+                "Generate 5 detailed technical requirements. "
+                "Each item must strictly follow the TechnicalSpec schema: "
+                f"{list(TechnicalSpec.model_fields.keys())}."
+            )
+        )
+
+    async def check_requirements(self, requirements: str) -> PMAnalysisReport:
         """
-        Validates raw input against SMART criteria.
-        Robust implementation using safe dictionary access instead of try/except.
+        Validates raw input and maps it to PMAnalysisReport.
         """
-        chain = self.check_prompt | self.structured_llm
-        
-        report = chain.invoke({"requirements": requirements})
-        
+        result = await self._checker_agent.run(requirements)
+        report = result.output
         report.content = requirements
         return report
 
-    def generate_specs(self, validated_data: Dict[str, Any]) -> List[TechnicalSpec]:
+    async def generate_specs(self, validated_data: Dict[str, Any]) -> List[TechnicalSpec]:
         """
         Generates formal technical specifications from validated data.
-        Returns a list of Domain-level TechnicalSpec objects.
         """
-        chain = self.gen_prompt | self.llm | JsonOutputParser()
-        raw_list = chain.invoke({"points": validated_data})
-        
-        # Logic: Domain Mapping - transform raw list to Domain Models
-        # Supports both direct list response or nested list in dict
-        if isinstance(raw_list, dict) and "requirements" in raw_list:
-            raw_list = raw_list["requirements"]
-            
-        return [TechnicalSpec(**item) for item in raw_list]
+        result = await self._spec_agent.run(f"Points: {validated_data}")
+        return result.output
 
-    def fill_gaps_with_hypotheses(self, report: PMAnalysisReport) -> List[str]:
+    async def fill_gaps_with_hypotheses(self, report: PMAnalysisReport) -> List[str]:
         """
-        Specialized logic to handle missing info by generating technical assumptions.
-        Uses the PMAnalysisReport contract as input.
+        Generates technical assumptions for missing information gaps.
         """
-        prompt = ChatPromptTemplate.from_template(
-            "Generate technical hypotheses for these gaps: {gaps}. "
-            "Return JSON with a 'hypotheses' list."
+        # Specialized agent for list of strings
+        agent = Agent(
+            model=self.model,
+            output_type=List[str],
+            model_settings=self.settings,
+            instructions="Generate technical hypotheses for these gaps. Return a JSON list of strings."
         )
-        chain = prompt | self.llm | JsonOutputParser()
-        
-        response = chain.invoke({"gaps": report.gaps})
-        return response.get("hypotheses", [])
+        result = await agent.run(f"Gaps: {report.gaps}")
+        return result.output

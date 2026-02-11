@@ -1,5 +1,5 @@
 import pytest
-import asyncio
+import anyio
 from pytest_bdd import scenario, given, when, then, parsers
 from apps.architect.api.controller import ArchitectController
 from apps.architect.dto.contracts import ArchitectureRequest, PMAnalysisReport
@@ -13,67 +13,72 @@ def test_status(client: httpx.Client):
     """Check if the UI is reachable."""
     assert client.get("/api/status").status_code == 200
 
+# --- Scenarios ---
 
 @scenario("../specs/features/ui_workflow.feature", "Successful SMART validation")
 def test_ui_logic_flow():
+    """
+    BDD scenario for testing the end-to-end agentic workflow logic.
+    """
     pass
 
+# --- Steps ---
 
 @given(parsers.parse('the client input "{requirements}"'), target_fixture="input_data")
 def input_data(requirements: str) -> str:
-    return (
-        "Build a Python Inventory API. "
-        "Tech Stack: FastAPI, PostgreSQL and Docker. "
-        "Deadline: Q1 2026. "
-        "Performance: Must handle 100 requests per second. "
-        "Data Source: Internal JSON legacy files."
-    )
-
+    """
+    Sets up the initial requirements string.
+    """
+    return requirements
 
 @when('the user clicks on "START AGENTIC WORKFLOW"', target_fixture="workflow_result")
 def trigger_workflow(input_data: str):
     """
-    asyncio.run for sync test
+    Triggers the full agentic pipeline via the Controller.
+    Uses anyio for clean asynchronous execution within a synchronous test.
     """
     controller = ArchitectController()
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        import nest_asyncio
-        nest_asyncio.apply()
-
     request_obj = ArchitectureRequest(requirements=input_data)
-    result = loop.run_until_complete(controller.run_full_pipeline(request_obj))
-    return result
+    
+    # Execute the async pipeline and return the AgentStateDTO
+    return anyio.run(controller.run_full_pipeline, request_obj)
 
 @then('the PM status should be "✅ SMART"')
 def check_pm_status(workflow_result):
     """
-    We verify the PM analysis exists.
-    Even if is_smart is False, the agent has worked.
+    Validates that the PM Agent has processed the requirements.
     """
-    assert "charter_data" in workflow_result
-    raw_report = workflow_result["charter_data"]
+    # Access attributes directly from the DTO
+    assert workflow_result.charter_data is not None
     
-    # On s'assure d'avoir l'objet pour utiliser la notation pointée .gaps
-    report = raw_report if isinstance(raw_report, PMAnalysisReport) else PMAnalysisReport(**raw_report)
+    # Safely parse the charter data into the contract model
+    raw_data = workflow_result.charter_data
+    report = raw_data if isinstance(raw_data, PMAnalysisReport) else PMAnalysisReport(**raw_data)
     
-    print(f"PM Gaps: {report.gaps}")
+    # Logging for debug visibility in pytest -s
+    if report.gaps:
+        print(f"\n[PM Analysis] Gaps identified: {report.gaps}")
+    
+    assert hasattr(report, "is_smart"), "PM Report is missing 'is_smart' field."
 
 @then("a C4 diagram should be displayed")
 def check_diagram(workflow_result):
     """
-    This test should only pass IF the PM validated the project.
-    If the PM said 'False', it's normal that architecture_specs is missing.
+    Verifies that the Architect Agent generated a diagram, 
+    provided the PM analysis allowed the workflow to proceed.
     """
-    raw_report = workflow_result["charter_data"]
-    
-    report = raw_report if isinstance(raw_report, PMAnalysisReport) else PMAnalysisReport(**raw_report)
+    # Ensure we use attribute access on the workflow_result DTO
+    raw_data = workflow_result.charter_data
+    report = raw_data if isinstance(raw_data, PMAnalysisReport) else PMAnalysisReport(**raw_data)
 
-    if report.is_smart:
-        assert "architecture_specs" in workflow_result
-        specs = workflow_result["architecture_specs"]
-        
-        diagram_content = getattr(specs, "diagram", "") if not isinstance(specs, dict) else specs.get("diagram", "")
-        assert "graph TD" in diagram_content
-    else:
-        pytest.skip(f"PM blocked the workflow: {report.gaps}")
+    if not report.is_smart and not report.hypotheses:
+        pytest.skip(f"Workflow halted by PM. Gaps: {report.gaps}")
+
+    # Access architecture_specs attribute
+    specs = workflow_result.architecture_specs
+    assert specs is not None, "Architecture specs should be generated when workflow proceeds."
+
+    # Validate diagram content (handling both dict or object access)
+    diagram_content = specs.get("diagram", "") if isinstance(specs, dict) else getattr(specs, "diagram", "")
+    
+    assert "graph TD" in diagram_content, "C4 Diagram does not contain expected Mermaid syntax."

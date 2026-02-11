@@ -5,7 +5,7 @@ global:
   imagePullPolicy: IfNotPresent
 
 ollama:
-  image: custom-ollama-gemma
+  image: custom-ollama
   cpu: "1"
   memory: "2Gi"
 

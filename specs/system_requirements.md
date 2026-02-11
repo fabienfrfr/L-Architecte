@@ -44,7 +44,7 @@ These define the boundaries and mandatory technical limits of the system.
 ### 3.2 Mode: Testing (CI/CD)
 * **Target**: GitHub Actions / Headless.
 * **UI**: Disabled (Headless testing).
-* **LLM**: `gemma3:270m` (ultra-lightweight for speed).
+* **LLM**: `qwen3:0.6b` (ultra-lightweight for speed).
 
 ---
 

@@ -38,5 +38,5 @@ class TestAnalystAgent:
         # TODO: We check for semantic meaning rather than exact strings
         #  --> construct an other test ? 1 test = 1 assert
         assert any("validation" in n.lower() for n in report.needs)
-        # assert any("scope" in r.lower() for r in report.risks)
+        assert any("scope" in r.lower() for r in report.risks)
         assert len(report.actors) >= 0  # Should be a list, even if empty

@@ -1,7 +1,8 @@
-import json
 import logging
-from typing import TypedDict, Optional, Dict, Any
-from langgraph.graph import StateGraph, START, END
+from dataclasses import dataclass
+from typing import Optional, Dict, Any, Union
+
+from pydantic_graph import BaseNode, End, Graph, GraphRunContext
 
 # --- Standardized Imports ---
 from apps.architect.agents.nodes.pm import PMAgent
@@ -11,157 +12,108 @@ from apps.architect.agents.nodes.engineer import EngineerAgent
 
 # --- State Definition ---
 
-
-class AgentState(TypedDict):
+@dataclass
+class AgentState:
+    """
+    State of the workflow, migrated from TypedDict to Dataclass for Pydantic Graph.
+    Maintains all original fields for functional parity.
+    """
     requirements: str
-    charter_data: Optional[Dict[str, Any]]
-    analysis_report: Optional[Dict[str, Any]]
-    architecture_specs: Optional[Dict[str, Any]]
-    final_code: Optional[Dict[str, Any]]
-    is_ready: bool
-    retry_count: int
-    latest_error: Optional[str]
+    charter_data: Optional[Dict[str, Any]] = None
+    analysis_report: Optional[Dict[str, Any]] = None
+    architecture_specs: Optional[Dict[str, Any]] = None
+    final_code: Optional[Dict[str, Any]] = None
+    is_ready: bool = False
+    retry_count: int = 0
+    latest_error: Optional[str] = None
 
+# --- Node Definitions ---
 
-# --- Node Functions ---
+@dataclass
+class PMNode(BaseNode[AgentState]):
+    """
+    Executes PM analysis with SMART validation and hypothesis generation.
+    Handles internal retries based on the state.
+    """
+    async def run(self, ctx: GraphRunContext[AgentState]) -> Union['PMNode', 'AnalystNode', End]:
+        agent = PMAgent()
+        
+        try:
+            # Step 1: Initial SMART Check
+            # Using await as PydanticAI agents are async
+            report = await agent.check_requirements(ctx.state.requirements)
+            
+            # Step 2: Adaptive Logic
+            if not report.is_smart:
+                logging.info("Requirements not SMART. Calling hypotheses generation...")
+                hypotheses = await agent.fill_gaps_with_hypotheses(report.gaps)
+                report.hypotheses = hypotheses
 
+            ctx.state.charter_data = report.model_dump()
+            ctx.state.is_ready = True
+            ctx.state.latest_error = None
+            
+            return AnalystNode()
 
-def pm_node(state: AgentState) -> Dict[str, Any]:
-    """Executes PM analysis and catches potential parsing errors."""
-    agent = PMAgent()
-    current_retry = state.get("retry_count", 0)
+        except Exception as e:
+            logging.error(f"Inference error on try {ctx.state.retry_count}: {str(e)}")
+            ctx.state.latest_error = str(e)
+            
+            if ctx.state.retry_count < 3:
+                ctx.state.retry_count += 1
+                return self  # Equivalent to "retry" in retry_router
+            return End(data="Max retries reached or stop condition.")
 
-    try:
-        # Step 1: Initial SMART Check
-        response = agent.check_requirements(state["requirements"])
-        content = response.content if hasattr(response, "content") else response
-        data = json.loads(content)
-
-        # Step 2: Adaptive Logic
-        # If not SMART, we use the agent's second method to fill gaps
-        if not data.get("is_smart", False):
-            logging.info("Requirements not SMART. Calling hypotheses generation...")
-            hypotheses_res = agent.fill_gaps_with_hypotheses(data)
-
-            # Integration of hypotheses into the charter data
-            hyp_content = (
-                hypotheses_res.content
-                if hasattr(hypotheses_res, "content")
-                else hypotheses_res
-            )
-            hyp_data = json.loads(hyp_content)
-            data["hypotheses"] = hyp_data.get("hypotheses", [])
-
-        return {
-            "charter_data": data,
-            "is_ready": True,  # We force True because we now have hypotheses to proceed
-            "latest_error": None,
-            "retry_count": current_retry,
-        }
-    except Exception as e:
-        logging.error(f"Inference error on try {current_retry}: {str(e)}")
-        return {"latest_error": str(e), "retry_count": current_retry + 1}
-
-
-def analyst_node(state: AgentState) -> Dict[str, Any]:
+@dataclass
+class AnalystNode(BaseNode[AgentState]):
     """Analyst Agent: Performs data discovery."""
-    agent = AnalystAgent()
-    report = agent.analyze(state["requirements"])
-    return {
-        "analysis_report": (
-            report.model_dump() if hasattr(report, "model_dump") else report.dict()
-        )
-    }
+    async def run(self, ctx: GraphRunContext[AgentState]) -> 'ArchitectNode':
+        agent = AnalystAgent()
+        report = await agent.analyze(ctx.state.requirements)
+        ctx.state.analysis_report = report.model_dump()
+        return ArchitectNode()
 
-
-def architect_node(state: AgentState) -> Dict[str, Any]:
+@dataclass
+class ArchitectNode(BaseNode[AgentState]):
     """Architect Agent: Generates C4 diagrams and ADRs."""
-    agent = ArchitectAgent()
-    diagram = agent.generate_c4_diagram({"req": state["requirements"]})
-    adr = agent.generate_adr({"context": "Local Deployment"})
+    async def run(self, ctx: GraphRunContext[AgentState]) -> 'EngineerNode':
+        agent = ArchitectAgent()
+        # Assuming existing methods are migrated to async
+        diagram = await agent.generate_c4_diagram({"req": ctx.state.requirements})
+        adr = await agent.generate_adr({"context": "Local Deployment"})
 
-    return {
-        "architecture_specs": {
+        ctx.state.architecture_specs = {
             "diagram": diagram,
-            "adr": adr.model_dump() if hasattr(adr, "model_dump") else adr.dict(),
+            "adr": adr.model_dump(),
         }
-    }
+        return EngineerNode()
 
-
-def engineer_node(state: AgentState) -> Dict[str, Any]:
+@dataclass
+class EngineerNode(BaseNode[AgentState]):
     """Engineer Agent: Generates SOLID-compliant code."""
-    agent = EngineerAgent()
-    specs = state.get("architecture_specs")
+    async def run(self, ctx: GraphRunContext[AgentState]) -> 'ReviewerNode':
+        agent = EngineerAgent()
+        specs = ctx.state.architecture_specs
 
-    if not specs:
-        raise ValueError(
-            "Critical Error: Missing architecture specs for Engineer Agent."
-        )
+        if not specs:
+            raise ValueError("Critical Error: Missing architecture specs for Engineer Agent.")
 
-    code = agent.generate_solid_code(specs["adr"], specs["diagram"])
-    return {
-        "final_code": code.model_dump() if hasattr(code, "model_dump") else code.dict()
-    }
+        code = await agent.generate_solid_code(specs["adr"], specs["diagram"])
+        ctx.state.final_code = code.model_dump()
+        return ReviewerNode()
 
-
-def review_node(state: AgentState) -> Dict[str, Any]:
+@dataclass
+class ReviewerNode(BaseNode[AgentState]):
     """Critiques the proposed solution based on 'Less is More' principle."""
-    # Simplified placeholder for the review logic
-    # Put in context, say "it was a competing agent who produced result". (Mistral vs GPT)
-    # But also, say "You are an objective reviewer". (Two perspectives)
-    return state
+    async def run(self, ctx: GraphRunContext[AgentState]) -> End:
+        # Objective review logic placeholder
+        return End(data="Architecture flow completed successfully.")
 
+# --- Graph Construction ---
 
-# --- Routing Logic ---
+architect_graph = Graph(
+    nodes=(PMNode, AnalystNode, ArchitectNode, EngineerNode, ReviewerNode),
+)
 
-
-def retry_router(state: AgentState) -> str:
-    """Explicit Router for Error Handling and Business Logic."""
-    if state.get("latest_error") and state.get("retry_count", 0) < 3:
-        return "retry"
-    if state.get("is_ready"):
-        return "continue"
-    return "stop"
-
-
-# --- Graph Construction Function ---
-
-
-def create_architect_graph() -> StateGraph:
-    """
-    Constructs and compiles the AgenticArchitect workflow.
-    This encapsulation follows the 'Analyst -> Architect -> Engineer' methodology.
-    """
-    builder = StateGraph(AgentState)
-
-    # Add all agents as nodes
-    builder.add_node("pm", pm_node)
-    builder.add_node("analyst", analyst_node)
-    builder.add_node("architect", architect_node)
-    builder.add_node("engineer", engineer_node)
-    builder.add_node("reviewer", review_node)
-
-    # Define the flow
-    builder.add_edge(START, "pm")
-
-    builder.add_conditional_edges(
-        "pm",
-        retry_router,
-        {
-            "retry": "pm",
-            "continue": "analyst",
-            "stop": END,
-        },
-    )
-
-    builder.add_edge("analyst", "architect")
-    builder.add_edge("architect", "engineer")
-    builder.add_edge("engineer", "reviewer")
-    builder.add_edge("reviewer", END)
-
-    return builder.compile()
-
-
-# --- Executable App Export ---
-# This is the object you will import in your main.py and pass to layout.update_graph()
-app_workflow = create_architect_graph()
+# Export for application use
+app_workflow = architect_graph
