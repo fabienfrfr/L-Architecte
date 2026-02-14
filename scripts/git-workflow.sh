@@ -28,6 +28,7 @@ case $MODE in
         git merge --squash "$BRANCH"
         git commit -m "$MSG"
         git branch -D "$BRANCH"
+        echo "do : git push origin --delete "$BRANCH""
         echo "✅ Merged locally into $TARGET."
         ;;
 
