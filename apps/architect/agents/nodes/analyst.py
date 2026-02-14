@@ -12,15 +12,14 @@ class AnalystAgent(IAnalystAgent):
         self.model = get_llm_model()
         self.fields = list(CadrageReport.model_fields.keys())
 
-        self._agent: Agent[None, str] = Agent(
+        self._agent: Agent[None, CadrageReport] = Agent(
             model=self.model,
             output_type=CadrageReport,
-            model_settings=ModelSettings(
-                temperature=0.0,
-                response_format={'type': 'json_object'}
-            ),
+            model_settings=ModelSettings(temperature=0.0,),
+            retries=2,
             instructions=(
                 "You are the Senior Analyst for TheArchitect. "
+                "Reason VERY briefly. "
                 "Extract needs, constraints, actors, and risks from the CDC. "
                 f"Your output MUST be a JSON object with EXACTLY these keys: {self.fields}. "
                 "If anything is unclear, add it to clarification_questions."

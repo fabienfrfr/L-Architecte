@@ -156,6 +156,8 @@ ci-deploy: ## Update image and restart deployment on VPS
 	$(eval REPO_OWNER ?= $(shell echo $${GITHUB_REPOSITORY_OWNER}))
 	@KUBECONFIG=~/.kube/config-vps kubectl set image deployment/architect \
 		agentic-architect=ghcr.io/$(REPO_OWNER)/agentic-architect:latest -n $(NAMESPACE)
+	@KUBECONFIG=~/.kube/config-vps kubectl set image deployment/ollama \
+		custom-ollama=ghcr.io/$(REPO_OWNER)/custom-ollama:latest -n $(NAMESPACE)
 	@KUBECONFIG=~/.kube/config-vps kubectl rollout restart deployment -n $(NAMESPACE)
 
 ##@ (Pulumi) Infrastructure & Deployment

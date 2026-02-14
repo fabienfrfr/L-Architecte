@@ -6,8 +6,8 @@ global:
 
 ollama:
   image: custom-ollama
-  cpu: "1"
-  memory: "2Gi"
+  cpu: "0.5"
+  memory: "1.5Gi"
 
 arangodb:
   image: arangodb/arangodb:3.11

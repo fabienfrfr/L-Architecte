@@ -12,18 +12,17 @@ class PMAgent:
 
     def __init__(self) -> None:
         self.model = get_llm_model()
-        self.settings = ModelSettings(
-            temperature=0.0,
-            response_format={'type': 'json_object'}
-        )
+        self.settings = ModelSettings(temperature=0.0)
 
         # Agent for SMART validation
         self._checker_agent = Agent(
             model=self.model,
             output_type=PMAnalysisReport,
             model_settings=self.settings,
+            retries=2,
             instructions=(
                 "You are a strict Project Manager. Analyze requirements using SMART criteria. "
+                "Reason VERY briefly. "
                 "If ANY detail is missing, set 'is_smart' to false. "
                 f"Output MUST be JSON with keys: {list(PMAnalysisReport.model_fields.keys())}."
             )
@@ -34,8 +33,10 @@ class PMAgent:
             model=self.model,
             output_type=List[TechnicalSpec],
             model_settings=self.settings,
+            retries=2,
             instructions=(
                 "Generate 5 detailed technical requirements. "
+                "Reason VERY briefly. "
                 "Each item must strictly follow the TechnicalSpec schema: "
                 f"{list(TechnicalSpec.model_fields.keys())}."
             )
@@ -66,7 +67,11 @@ class PMAgent:
             model=self.model,
             output_type=List[str],
             model_settings=self.settings,
-            instructions="Generate technical hypotheses for these gaps. Return a JSON list of strings."
+            retries=2,
+            instructions=(
+                "Reason VERY briefly about technical gaps, "
+                "then generate hypotheses. Return a JSON list of strings."
+            )
         )
         result = await agent.run(f"Gaps: {report.gaps}")
         return result.output

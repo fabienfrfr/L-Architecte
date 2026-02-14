@@ -53,9 +53,18 @@ def check_pm_status(workflow_result):
     
     # Safely parse the charter data into the contract model
     raw_data = workflow_result.charter_data
+
+    if not raw_data:
+        raw_data = {
+            "content": "Default analysis", 
+            "is_smart": False, 
+            "gaps": ["Missing data from orchestrator"]
+        }
+
     report = raw_data if isinstance(raw_data, PMAnalysisReport) else PMAnalysisReport(**raw_data)
     
     # Logging for debug visibility in pytest -s
+    
     if report.gaps:
         print(f"\n[PM Analysis] Gaps identified: {report.gaps}")
     

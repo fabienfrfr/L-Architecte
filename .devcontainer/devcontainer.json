@@ -47,6 +47,7 @@
                 "ms-python.python",
                 "ms-python.debugpy",
                 "charliermarsh.ruff",
+                "ms-pyright.pyright",
                 "ms-toolsai.jupyter",
                 "ms-toolsai.jupyter-renderers",
                 "marimo-team.vscode-marimo", 

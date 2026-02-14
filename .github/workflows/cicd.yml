@@ -2,9 +2,9 @@ name: CICD-Pipeline
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, dev]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, dev]
 
 jobs:
   test-and-deploy:
@@ -20,14 +20,24 @@ jobs:
       - name: Free Disk Space (Deep Cleanup)
         run: make ci-deep-clean
 
-      - name: Move Docker Storage to /mnt
+      - name: Move Docker Storage (Conditional)
         run: |
-          sudo systemctl stop docker
-          sudo mkdir -p /mnt/docker-data
-          sudo rsync -aP /var/lib/docker/ /mnt/docker-data
-          echo '{"data-root": "/mnt/docker-data"}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl start docker
-          docker info -f '{{ .DockerRootDir }}'
+          if mountpoint -q /mnt; then
+            echo "Separate /mnt detected. Moving Docker storage..."
+            sudo systemctl stop docker
+            sudo mkdir -p /mnt/docker-data
+            
+            # Use -a (archive) but avoid unnecessary verbosity to speed up CI
+            sudo rsync -a /var/lib/docker/ /mnt/docker-data
+            
+            # Configure Docker to use the new path
+            echo '{"data-root": "/mnt/docker-data"}' | sudo tee /etc/docker/daemon.json
+            
+            sudo systemctl start docker
+            docker info -f 'Docker Root Dir: {{ .DockerRootDir }}'
+          else
+            echo "/mnt is not a separate mount point. Keeping default storage."
+          fi
 
       - name: Slim Down Devbox (Whitelist Only)
         run: |
@@ -38,7 +48,7 @@ jobs:
           mv devbox.ci.json devbox.json
 
       - name: Install Devbox
-        uses: jetpack-io/devbox-install-action@v0.11.0
+        uses: jetify-com/devbox-install-action@v0.14.0
 
       - name: Setup Infrastructure (cluster)
         run: devbox run set

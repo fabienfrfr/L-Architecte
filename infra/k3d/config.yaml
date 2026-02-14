@@ -15,7 +15,7 @@ ports:
 options:
   k3d:
     wait: true
-    timeout: "60s"
+    timeout: "300s"
   k3s:
     extraArgs:
       - arg: --disable=traefik

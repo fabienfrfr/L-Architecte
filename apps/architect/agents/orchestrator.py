@@ -10,6 +10,8 @@ from apps.architect.agents.nodes.analyst import AnalystAgent
 from apps.architect.agents.nodes.architect import ArchitectAgent
 from apps.architect.agents.nodes.engineer import EngineerAgent
 
+from apps.architect.dto.contracts import PMAnalysisReport
+
 # --- State Definition ---
 
 @dataclass
@@ -29,54 +31,53 @@ class AgentState:
 
 # --- Node Definitions ---
 
+PMNodeReturnValue = Union['PMNode', 'AnalystNode', End[None]]
+AnalystNodeReturnValue = Union['ArchitectNode', End[None]]
+ArchitectNodeReturnValue = Union['EngineerNode', End[None]]
+EngineerNodeReturnValue = Union['ReviewerNode', End[None]]
+
+
 @dataclass
-class PMNode(BaseNode[AgentState]):
+class PMNode(BaseNode[AgentState, Any, None]):
     """
-    Executes PM analysis with SMART validation and hypothesis generation.
-    Handles internal retries based on the state.
+    Handles requirements validation using the PM Agent.
+    Strict type checking ensures compatibility with the agentic workflow.
     """
-    async def run(self, ctx: GraphRunContext[AgentState]) -> Union['PMNode', 'AnalystNode', End]:
+    async def run(self, ctx: GraphRunContext[AgentState]) -> PMNodeReturnValue:
         agent = PMAgent()
         
-        try:
-            # Step 1: Initial SMART Check
-            # Using await as PydanticAI agents are async
-            report = await agent.check_requirements(ctx.state.requirements)
-            
-            # Step 2: Adaptive Logic
-            if not report.is_smart:
-                logging.info("Requirements not SMART. Calling hypotheses generation...")
-                hypotheses = await agent.fill_gaps_with_hypotheses(report.gaps)
-                report.hypotheses = hypotheses
+        # Direct execution: exceptions will propagate and stop the graph if they occur
+        report = await agent.check_requirements(ctx.state.requirements)
+        
+        # Type guard to handle non-deterministic LLM outputs in CI
+        if not isinstance(report, PMAnalysisReport):
+            logging.error(f"Invalid output format received: {type(report)}")
+            return End(None)
 
-            ctx.state.charter_data = report.model_dump()
-            ctx.state.is_ready = True
-            ctx.state.latest_error = None
-            
-            return AnalystNode()
+        # Logic for non-SMART requirements
+        if not report.is_smart:
+            # Pass the full report object to satisfy Pyright signature requirements
+            report.hypotheses = await agent.fill_gaps_with_hypotheses(report)
 
-        except Exception as e:
-            logging.error(f"Inference error on try {ctx.state.retry_count}: {str(e)}")
-            ctx.state.latest_error = str(e)
-            
-            if ctx.state.retry_count < 3:
-                ctx.state.retry_count += 1
-                return self  # Equivalent to "retry" in retry_router
-            return End(data="Max retries reached or stop condition.")
+        # Update state using standardized model dumping
+        ctx.state.charter_data = report.model_dump()
+        ctx.state.is_ready = True
+        
+        return AnalystNode()
 
 @dataclass
-class AnalystNode(BaseNode[AgentState]):
+class AnalystNode(BaseNode[AgentState, Any, None]):
     """Analyst Agent: Performs data discovery."""
-    async def run(self, ctx: GraphRunContext[AgentState]) -> 'ArchitectNode':
+    async def run(self, ctx: GraphRunContext[AgentState]) -> AnalystNodeReturnValue:
         agent = AnalystAgent()
         report = await agent.analyze(ctx.state.requirements)
         ctx.state.analysis_report = report.model_dump()
         return ArchitectNode()
 
 @dataclass
-class ArchitectNode(BaseNode[AgentState]):
+class ArchitectNode(BaseNode[AgentState, Any, None]):
     """Architect Agent: Generates C4 diagrams and ADRs."""
-    async def run(self, ctx: GraphRunContext[AgentState]) -> 'EngineerNode':
+    async def run(self, ctx: GraphRunContext[AgentState]) -> ArchitectNodeReturnValue:
         agent = ArchitectAgent()
         # Assuming existing methods are migrated to async
         diagram = await agent.generate_c4_diagram({"req": ctx.state.requirements})
@@ -89,9 +90,9 @@ class ArchitectNode(BaseNode[AgentState]):
         return EngineerNode()
 
 @dataclass
-class EngineerNode(BaseNode[AgentState]):
+class EngineerNode(BaseNode[AgentState, Any, None]):
     """Engineer Agent: Generates SOLID-compliant code."""
-    async def run(self, ctx: GraphRunContext[AgentState]) -> 'ReviewerNode':
+    async def run(self, ctx: GraphRunContext[AgentState]) -> EngineerNodeReturnValue:
         agent = EngineerAgent()
         specs = ctx.state.architecture_specs
 
@@ -103,11 +104,11 @@ class EngineerNode(BaseNode[AgentState]):
         return ReviewerNode()
 
 @dataclass
-class ReviewerNode(BaseNode[AgentState]):
+class ReviewerNode(BaseNode[AgentState, Any, None]):
     """Critiques the proposed solution based on 'Less is More' principle."""
     async def run(self, ctx: GraphRunContext[AgentState]) -> End:
         # Objective review logic placeholder
-        return End(data="Architecture flow completed successfully.")
+        return End(None)
 
 # --- Graph Construction ---
 
