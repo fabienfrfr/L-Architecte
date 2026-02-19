@@ -9,6 +9,8 @@
 #import "@preview/pintorita:0.1.4"
 #show raw.where(lang: "pintora"): it => pintorita.render(it.text)
 
+#import "@preview/oxdraw:0.1.0": *
+
 
 // --- Header ---
 #align(center)[
@@ -73,10 +75,29 @@ The system operates through four specialized roles:
 ```pintora
 componentDiagram
   DataQuery -- [Component]
+  B -- [C]
   [Component] ..> HTTP : use
 ```
 
-
+#oxdraw(
+```
+graph TD
+A[Input] --> B[Process]
+B --> C[Output]
+```,
+  background: white,
+  overrides: (
+    node_styles: (
+      A: (fill: "#4CAF50", stroke: "#2E7D32", text: "white"),
+      B: (fill: "#2196F3", stroke: "#1976D2"),
+      C: (fill: "#FF9800", stroke: "#F57C00")
+    ),
+    edge_styles: (
+      "A --> B": (color: "#666", line: "dashed"),
+      "B --> C": (color: "#E91E63", arrow: "both")
+    )
+  )
+)
 
 = Quick Start
 To initialize the development environment:
