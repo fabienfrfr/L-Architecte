@@ -36,7 +36,7 @@ RUN uv sync --frozen --no-dev
 EXPOSE 8080 5678
 
 # Public container
-LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/AgenticArchitect"
+LABEL org.opencontainers.image.source="https://github.com/fabienfrfr/L-Architecte"
 LABEL org.opencontainers.image.description="TheArchitect - Agentic Architect Core"
 
 # ENV PYTHON_JIT=1 (if need optimization)

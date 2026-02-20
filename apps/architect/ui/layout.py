@@ -18,7 +18,7 @@ class ArchitectLayout:
             ui.label("TheArchitect").classes("text-xl font-bold text-black")
             # We use an explicit FontAwesome class for GitHub
             with ui.link(
-                target="https://github.com/fabienfrfr/AgenticArchitect", new_tab=True
+                target="https://github.com/fabienfrfr/L-Architecte", new_tab=True
             ):
                 ui.element("i").classes(
                     "fa-brands fa-github text-3xl text-black hover:text-gray-600"

@@ -8,7 +8,7 @@
     "remoteUser": "devbox",
     "containerUser": "devbox",
     "forwardPorts": [8080, 8529, 6006, 11434, 5678],
-    "workspaceFolder": "/workspaces/AgenticArchitect",
+    "workspaceFolder": "/workspaces/L-Architecte",
 
     // k3d local management
     "runArgs": [

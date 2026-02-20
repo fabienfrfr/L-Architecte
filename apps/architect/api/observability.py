@@ -18,7 +18,7 @@ class PhoenixConfig:
     def __init__(self) -> None:
         # Default to gRPC port 4317. Using service name 'phoenix' for K8s/Docker networking.
         self.endpoint = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "http://phoenix:4317")
-        self.project_name = "AgenticArchitect"
+        self.project_name = "L-Architecte"
 
 class PhoenixProvider:
     """
